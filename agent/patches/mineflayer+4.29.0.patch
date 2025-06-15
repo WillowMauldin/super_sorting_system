@@ -1,47 +1,8 @@
 diff --git a/node_modules/mineflayer/lib/plugins/game.js b/node_modules/mineflayer/lib/plugins/game.js
-index 4006d14..d217e70 100644
+index 3bbf5b2..0d44c82 100644
 --- a/node_modules/mineflayer/lib/plugins/game.js
 +++ b/node_modules/mineflayer/lib/plugins/game.js
-@@ -26,29 +26,27 @@ function inject (bot, options) {
-     bot.game.levelType = packet.levelType ?? (packet.isFlat ? 'flat' : 'default')
-     bot.game.hardcore = packet.isHardcore ?? Boolean(packet.gameMode & 0b100)
-     bot.game.gameMode = parseGameMode(packet.gameMode)
--    if (bot.supportFeature('dimensionIsAnInt')) {
--      bot.game.dimension = dimensionNames[packet.dimension]
--    } else if (bot.supportFeature('dimensionIsAString')) {
--      bot.game.dimension = packet.dimension.replace('minecraft:', '')
--    } else if (bot.supportFeature('dimensionIsAWorld')) {
--      bot.game.dimension = packet.worldName.replace('minecraft:', '')
--    } else {
--      throw new Error('Unsupported dimension type in login packet')
--    }
-+    bot.game.dimension = packet.worldName.replace('minecraft:', '')
- 
-     if (packet.dimensionCodec) {
-       bot.registry.loadDimensionCodec(packet.dimensionCodec)
-     }
- 
-+    const dimensionsByName = {
-+      'the_nether': { minY: 0, height: 256 },
-+      'overworld': { minY: -64, height: 320 },
-+      'the_end':  { minY: 0, height: 256 },
-+    };
-+
-     if (bot.supportFeature('dimensionDataInCodec')) { // 1.19+
-       if (packet.worldType) { // login
-         bot.game.dimension = packet.worldType.replace('minecraft:', '')
--        const { minY, height } = bot.registry.dimensionsByName[bot.game.dimension]
-+        const { minY, height } = dimensionsByName[bot.game.dimension]
-         bot.game.minY = minY
-         bot.game.height = height
-       } else if (packet.dimension) { // respawn
-         bot.game.dimension = packet.dimension.replace('minecraft:', '')
--        const { minY, height } = bot.registry.dimensionsByName[bot.game.dimension]
-+        const { minY, height } = dimensionsByName[bot.game.dimension]
-         bot.game.minY = minY
-         bot.game.height = height
-       }
-@@ -100,7 +98,7 @@ function inject (bot, options) {
+@@ -116,7 +116,7 @@ function inject (bot, options) {
    })
  
    bot._client.on('game_state_change', (packet) => {
@@ -51,7 +12,7 @@ index 4006d14..d217e70 100644
      }
      if (packet.reason === 3) {
 diff --git a/node_modules/mineflayer/lib/plugins/generic_place.js b/node_modules/mineflayer/lib/plugins/generic_place.js
-index 8fddeba..2dee107 100644
+index 448dfc0..191cfbd 100644
 --- a/node_modules/mineflayer/lib/plugins/generic_place.js
 +++ b/node_modules/mineflayer/lib/plugins/generic_place.js
 @@ -34,7 +34,7 @@ function inject (bot) {
@@ -64,23 +25,41 @@ index 8fddeba..2dee107 100644
      // TODO: tell the server that we are sneaking while doing this
      const pos = referenceBlock.position
 diff --git a/node_modules/mineflayer/lib/plugins/inventory.js b/node_modules/mineflayer/lib/plugins/inventory.js
-index 89380cf..0e87139 100644
+index 70db312..889f427 100644
 --- a/node_modules/mineflayer/lib/plugins/inventory.js
 +++ b/node_modules/mineflayer/lib/plugins/inventory.js
-@@ -175,7 +175,7 @@ function inject (bot, { hideErrors }) {
+@@ -188,7 +188,7 @@ function inject (bot, { hideErrors }) {
      const directionNum = vectorToDirection(direction) // The packet needs a number as the direction
      cursorPos = cursorPos ?? new Vec3(0.5, 0.5, 0.5)
      // TODO: tell the server that we are not sneaking while doing this
 -    await bot.lookAt(block.position.offset(0.5, 0.5, 0.5), false)
 +    // await bot.lookAt(block.position.offset(0.5, 0.5, 0.5), false)
      // place block message
+     // TODO: logic below can likely be simplified
      if (bot.supportFeature('blockPlaceHasHeldItem')) {
-       bot._client.write('block_place', {
+@@ -238,7 +238,7 @@ function inject (bot, { hideErrors }) {
+ 
+   async function activateEntity (entity) {
+     // TODO: tell the server that we are not sneaking while doing this
+-    await bot.lookAt(entity.position.offset(0, 1, 0), false)
++    // await bot.lookAt(entity.position.offset(0, 1, 0), false)
+     bot._client.write('use_entity', {
+       target: entity.id,
+       mouse: 0, // interact with entity
+@@ -249,7 +249,7 @@ function inject (bot, { hideErrors }) {
+ 
+   async function activateEntityAt (entity, position) {
+     // TODO: tell the server that we are not sneaking while doing this
+-    await bot.lookAt(position, false)
++    // await bot.lookAt(position, false)
+     bot._client.write('use_entity', {
+       target: entity.id,
+       mouse: 2, // interact with entity at
 diff --git a/node_modules/mineflayer/lib/plugins/physics.js b/node_modules/mineflayer/lib/plugins/physics.js
-index 79fe868..e769681 100644
+index 588dfbb..81f0b50 100644
 --- a/node_modules/mineflayer/lib/plugins/physics.js
 +++ b/node_modules/mineflayer/lib/plugins/physics.js
-@@ -300,11 +300,8 @@ function inject (bot, { physicsEnabled, maxCatchupTicks }) {
+@@ -312,11 +312,8 @@ function inject (bot, { physicsEnabled, maxCatchupTicks }) {
      }
      lookingTask = createTask()
  
@@ -89,8 +68,8 @@ index 79fe868..e769681 100644
 -    const sensitivity = conv.fromNotchianPitch(0.15) // this is equal to 100% sensitivity in vanilla
 -    const yawChange = Math.round((yaw - bot.entity.yaw) / sensitivity) * sensitivity
 -    const pitchChange = Math.round((pitch - bot.entity.pitch) / sensitivity) * sensitivity
-+    const pitchChange = pitch - bot.entity.pitch
 +    const yawChange = yaw - bot.entity.yaw
++    const pitchChange = pitch - bot.entity.pitch
  
      if (yawChange === 0 && pitchChange === 0) {
        return
