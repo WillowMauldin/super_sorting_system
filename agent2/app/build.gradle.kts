@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.guava)
 
     implementation("org.geysermc.mcprotocollib:protocol:1.21.4-SNAPSHOT")
+    implementation("org.json:json:20250517")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -40,7 +41,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.App"
+    mainClass = "me.mauldin.super_sorting_system.Agent"
 }
 
 tasks.named<Test>("test") {
