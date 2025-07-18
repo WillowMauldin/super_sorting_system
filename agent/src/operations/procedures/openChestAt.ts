@@ -39,7 +39,12 @@ export const openChestAt = async (
   if (!chestBlock) throw new Error('No block at chest destination!');
 
   // @ts-ignore mineflayer typing is wrong
-  const chest: Chest & Window = await bot.openBlock(chestBlock);
+  const chest: Chest & Window = await bot.openBlock(chestBlock).catch((err) => {
+    throw new Error(
+      `Error while opening chest at (${chestLoc.vec3.x}, ${chestLoc.vec3.y}, ${chestLoc.vec3.z}) [${chestLoc.dim}]`,
+      { cause: err }
+    );
+  });
 
   return chest;
 };
