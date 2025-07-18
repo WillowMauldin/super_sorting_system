@@ -48,7 +48,7 @@ const main = async () => {
       : undefined,
     username: process.env.AGENT_USERNAME!,
     auth: 'microsoft',
-    version: '1.21',
+    version: '1.21.4',
     physicsEnabled: false
   });
 
