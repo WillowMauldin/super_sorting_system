@@ -13,6 +13,10 @@ plugins {
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+
+    maven("https://repo.opencollab.dev/main/") {
+        name = "opencollab"
+    }
 }
 
 dependencies {
@@ -23,6 +27,8 @@ dependencies {
 
     // This dependency is used by the application.
     implementation(libs.guava)
+
+    implementation("org.geysermc.mcprotocollib:protocol:1.21.4-SNAPSHOT")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
