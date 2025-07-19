@@ -17,8 +17,11 @@ import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 
 public class Bot {
     private boolean isConnected;
+    private Navigation navigation;
 
     public Bot(Config config) throws Exception {
+	this.navigation = new Navigation();
+
         FullJavaSession javaSession = McAuth.getSession();
         MCProfile mcProfile = javaSession.getMcProfile();
         MCToken mcToken = mcProfile.getMcToken();
@@ -34,8 +37,8 @@ public class Bot {
         client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
 
         client.addListener(new ConnectionListeners());
-        client.addListener(new Navigation());
-        client.addListener(new SignInfoListener());
+        client.addListener(navigation);
+        client.addListener(new SignInfoListener(navigation));
         client.addListener(new SessionAdapter() {
             @Override
             public void connected(ConnectedEvent event) {

@@ -19,7 +19,7 @@ import org.json.JSONTokener;
 import org.cloudburstmc.math.vector.Vector3d;
 
 public class Navigation extends SessionAdapter {
-    private int dimension = 0;
+    private String dimension = "";
     private double x = 0;
     private double y = 0;
     private double z = 0;
@@ -28,10 +28,10 @@ public class Navigation extends SessionAdapter {
     public void packetReceived(Session session, Packet packet) {
 	if (packet instanceof ClientboundRespawnPacket respawnPacket) {
 	    PlayerSpawnInfo spawnInfo = respawnPacket.getCommonPlayerSpawnInfo();
-	    this.dimension = spawnInfo.getDimension();
+	    this.dimension = spawnInfo.getWorldName().toString();
 	} else if (packet instanceof ClientboundLoginPacket loginPacket) {
 	    PlayerSpawnInfo spawnInfo = loginPacket.getCommonPlayerSpawnInfo();
-	    this.dimension = spawnInfo.getDimension();
+	    this.dimension = spawnInfo.getWorldName().toString();
 	} else if (packet instanceof ClientboundPlayerPositionPacket positionPacket) {
 	    Vector3d position = positionPacket.getPosition();
 	    double x = position.getX();
@@ -59,5 +59,15 @@ public class Navigation extends SessionAdapter {
 
 	    session.send(new ServerboundAcceptTeleportationPacket(positionPacket.getId()));
 	}
+    }
+
+    public String getOperatorDimension() {
+	if (this.dimension == "minecraft:the_nether") {
+	    return "TheNether";
+	} else if (this.dimension == "minecraft:the_end") {
+	    return "TheEnd";
+	}
+
+	return "Overworld";
     }
 }

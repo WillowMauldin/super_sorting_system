@@ -1,5 +1,11 @@
 package me.mauldin.super_sorting_system.bot;
 
+import me.mauldin.super_sorting_system.Operator;
+import me.mauldin.super_sorting_system.Operator.Vec3;
+import me.mauldin.super_sorting_system.Operator.Vec2;
+import me.mauldin.super_sorting_system.Operator.Location;
+import me.mauldin.super_sorting_system.Operator.Sign;
+import me.mauldin.super_sorting_system.Operator.ScanRegion;
 import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
@@ -12,14 +18,22 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtList;
 import java.util.stream.Collectors;
 import java.util.List;
+import java.util.ArrayList;
 import org.json.JSONTokener;
 
 public class SignInfoListener extends SessionAdapter {
+    private final Navigation navigation;
+    public SignInfoListener (Navigation navigation) {
+	this.navigation = navigation;
+    }
+
     @Override
     public void packetReceived(Session session, Packet packet) {
 	if (packet instanceof ClientboundLevelChunkWithLightPacket chunkPacket) {
 	    int x = chunkPacket.getX() * 16;
 	    int z = chunkPacket.getZ() * 16;
+
+	    List<Sign> signs = new ArrayList();
 	    for (BlockEntityInfo entity : chunkPacket.getBlockEntities()) {
 		if (!(entity.getType() == BlockEntityType.SIGN || entity.getType() == BlockEntityType.HANGING_SIGN)) {
 		    continue;
@@ -29,14 +43,22 @@ public class SignInfoListener extends SessionAdapter {
 		NbtMap data = entity.getNbt();
 		List<String> front = SignInfoListener.mapMessages((NbtList<String>) ((NbtMap) data.get("front_text")).get("messages"));
 		List<String> back = SignInfoListener.mapMessages((NbtList<String>) ((NbtMap) data.get("back_text")).get("messages"));
-		int signX = entity.getX() + x;
-		int signY = entity.getY();
-		int signZ = entity.getZ() + z;
-		System.out.println("Sign data: " + front.toString() + "(" + signX + ", " + signY + ", " + signZ + ")");
+
+		Vec3 vec3 = new Vec3(entity.getX() + x, entity.getY(), entity.getZ() + z);
+		Location loc = new Location(vec3, this.navigation.getOperatorDimension());
+
+		signs.add(new Sign(front, loc));
+		signs.add(new Sign(back, loc));
 	    }
+
+	    Vec2[] bounds = {
+		new Vec2(x, z),
+		new Vec2(x + 15, z + 15),
+	    };
+	    ScanRegion scan = new ScanRegion(signs, bounds, this.navigation.getOperatorDimension());
+	} else if (packet instanceof ClientboundChunkBatchFinishedPacket) {
 	    // Nowhere else uses chunk data, so handle this here
 	    // The server won't send more chunks until we've acknowledged it
-	} else if (packet instanceof ClientboundChunkBatchFinishedPacket) {
 	    session.send(new ServerboundChunkBatchReceivedPacket(5));
 	}
     }
