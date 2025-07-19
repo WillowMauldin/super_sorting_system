@@ -39,6 +39,7 @@ public class Bot {
 		client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
 
 		client.addListener(new ConnectionListeners());
+		client.addListener(new SignInfoListener());
 		client.addListener(new SessionAdapter() {
 		    @Override
 		    public void connected(ConnectedEvent event) {

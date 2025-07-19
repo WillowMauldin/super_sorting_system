@@ -30,6 +30,7 @@ dependencies {
 
     implementation("org.geysermc.mcprotocollib:protocol:1.21.4-SNAPSHOT")
     implementation("net.raphimc:MinecraftAuth:4.1.1")
+    implementation("org.cloudburstmc:nbt:3.0.0.Final")
     implementation("org.json:json:20250517")
 }
 
