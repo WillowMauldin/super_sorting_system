@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.guava)
 
     implementation("org.geysermc.mcprotocollib:protocol:1.21.4-SNAPSHOT")
+    implementation("net.raphimc:MinecraftAuth:4.1.1")
     implementation("org.json:json:20250517")
 }
 
