@@ -43,7 +43,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "me.mauldin.super_sorting_system.Agent"
+    mainClass = "me.mauldin.super_sorting_system.McAgent"
 }
 
 tasks.named<Test>("test") {
