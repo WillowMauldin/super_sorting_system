@@ -8,8 +8,6 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-
-    id("com.diffplug.spotless") version "7.1.0"
 }
 
 repositories {
@@ -51,10 +49,4 @@ application {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
-}
-
-spotless {
-	java {
-		palantirJavaFormat()
-	}
 }

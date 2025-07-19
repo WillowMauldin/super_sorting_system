@@ -16,6 +16,8 @@ import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 
 public class Bot {
+    private boolean isConnected;
+
     public Bot(Config config) throws Exception {
         FullJavaSession javaSession = McAuth.getSession();
         MCProfile mcProfile = javaSession.getMcProfile();
@@ -42,12 +44,15 @@ public class Bot {
             @Override
             public void disconnected(DisconnectedEvent event) {
                 System.out.println("Disconnected: " + event.getReason() + " (" + event.getCause() + ")");
+                isConnected = false;
             }
         });
 
         client.connect();
-        while (true) {
-            Thread.sleep(5);
-        }
+	this.isConnected = true;
+    }
+
+    public boolean getIsConnected() {
+	return this.isConnected;
     }
 }
