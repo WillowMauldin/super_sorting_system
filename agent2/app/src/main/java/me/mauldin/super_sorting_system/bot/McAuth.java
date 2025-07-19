@@ -1,4 +1,4 @@
-package me.mauldin.super_sorting_system;
+package me.mauldin.super_sorting_system.bot;
 
 import net.lenni0451.commons.httpclient.HttpClient;
 import net.raphimc.minecraftauth.MinecraftAuth;
