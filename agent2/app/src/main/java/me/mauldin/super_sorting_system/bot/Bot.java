@@ -1,60 +1,53 @@
 package me.mauldin.super_sorting_system.bot;
 
-import me.mauldin.super_sorting_system.Config;
-import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession.FullJavaSession;
-import org.geysermc.mcprotocollib.auth.SessionService;
-import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
-import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
-import org.geysermc.mcprotocollib.network.packet.Packet;
-import org.geysermc.mcprotocollib.network.event.session.DisconnectedEvent;
-import org.geysermc.mcprotocollib.network.event.session.ConnectedEvent;
-import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
-import org.geysermc.mcprotocollib.network.Session;
-import org.geysermc.mcprotocollib.network.ClientSession;
-import org.geysermc.mcprotocollib.network.factory.ClientNetworkSessionFactory;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
-import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundFinishConfigurationPacket;
-import net.raphimc.minecraftauth.step.java.StepMCToken.MCToken;
-import net.raphimc.minecraftauth.step.java.StepMCProfile.MCProfile;
-import org.geysermc.mcprotocollib.auth.GameProfile;
-
 import java.net.InetSocketAddress;
+import me.mauldin.super_sorting_system.Config;
+import net.raphimc.minecraftauth.step.java.StepMCProfile.MCProfile;
+import net.raphimc.minecraftauth.step.java.StepMCToken.MCToken;
+import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession.FullJavaSession;
+import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.SessionService;
+import org.geysermc.mcprotocollib.network.ClientSession;
+import org.geysermc.mcprotocollib.network.event.session.ConnectedEvent;
+import org.geysermc.mcprotocollib.network.event.session.DisconnectedEvent;
+import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
+import org.geysermc.mcprotocollib.network.factory.ClientNetworkSessionFactory;
+import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
+import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 
 public class Bot {
-	public Bot(Config config) throws Exception {
-		FullJavaSession javaSession = McAuth.getSession();
-		MCProfile mcProfile = javaSession.getMcProfile();
-		MCToken mcToken = mcProfile.getMcToken();
+    public Bot(Config config) throws Exception {
+        FullJavaSession javaSession = McAuth.getSession();
+        MCProfile mcProfile = javaSession.getMcProfile();
+        MCToken mcToken = mcProfile.getMcToken();
 
-		SessionService sessionService = new SessionService();
-		MinecraftProtocol protocol = new MinecraftProtocol(
-		    new GameProfile(mcProfile.getId(), mcProfile.getName()),
-                    mcToken.getAccessToken()
-		);
+        SessionService sessionService = new SessionService();
+        MinecraftProtocol protocol = new MinecraftProtocol(
+                new GameProfile(mcProfile.getId(), mcProfile.getName()), mcToken.getAccessToken());
 
-		ClientSession client = ClientNetworkSessionFactory.factory()
-		    .setRemoteSocketAddress(new InetSocketAddress(config.getMcServerHost(), config.getMcServerPort()))
-		    .setProtocol(protocol)
-		    .create();
-		client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
+        ClientSession client = ClientNetworkSessionFactory.factory()
+                .setRemoteSocketAddress(new InetSocketAddress(config.getMcServerHost(), config.getMcServerPort()))
+                .setProtocol(protocol)
+                .create();
+        client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
 
-		client.addListener(new ConnectionListeners());
-		client.addListener(new SignInfoListener());
-		client.addListener(new SessionAdapter() {
-		    @Override
-		    public void connected(ConnectedEvent event) {
-			System.out.println("Connected");
-		    }
+        client.addListener(new ConnectionListeners());
+        client.addListener(new SignInfoListener());
+        client.addListener(new SessionAdapter() {
+            @Override
+            public void connected(ConnectedEvent event) {
+                System.out.println("Connected");
+            }
 
-		    @Override
-		    public void disconnected(DisconnectedEvent event) {
-			System.out.println("Disconnected: " + event.getReason() + " (" + event.getCause() + ")");
-		    }
-		});
+            @Override
+            public void disconnected(DisconnectedEvent event) {
+                System.out.println("Disconnected: " + event.getReason() + " (" + event.getCause() + ")");
+            }
+        });
 
-		client.connect();
-		while (true) {
-		    Thread.sleep(5);
-		}
-	}
+        client.connect();
+        while (true) {
+            Thread.sleep(5);
+        }
+    }
 }

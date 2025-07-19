@@ -1,9 +1,9 @@
 package me.mauldin.super_sorting_system;
 
-import org.json.JSONObject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import org.json.JSONObject;
 
 public class Config {
     private final String apiKey;
@@ -18,7 +18,7 @@ public class Config {
     public Config(String configPath) throws IOException {
         String content = Files.readString(Paths.get(configPath));
         JSONObject json = new JSONObject(content);
-        
+
         this.apiKey = json.getString("api_key");
         this.endpoint = json.getString("endpoint");
         this.mcServerHost = json.getString("mc_server_host");
