@@ -26,7 +26,6 @@ public class Bot {
     public Bot(Config config, Operator operator, Agent agent) throws Exception {
 	this.operator = operator;
 	this.agent = agent;
-	this.navigation = new Navigation();
 
         FullJavaSession javaSession = McAuth.getSession();
         MCProfile mcProfile = javaSession.getMcProfile();
@@ -41,6 +40,8 @@ public class Bot {
                 .setProtocol(protocol)
                 .create();
         client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
+
+	this.navigation = new Navigation(client, this.operator, this.agent);
 
         client.addListener(new ConnectionListeners());
         client.addListener(navigation);
