@@ -32,6 +32,7 @@ public class SignInfoListener extends SessionAdapter {
   private final Agent agent;
   private List<ScanRegion> pendingRegions;
   private final ScheduledExecutorService uploadScheduler;
+  private long chunkLastSeenAt = System.nanoTime();
 
   public SignInfoListener(Navigation navigation, Operator operator, Agent agent) {
     this.navigation = navigation;
@@ -40,6 +41,10 @@ public class SignInfoListener extends SessionAdapter {
     this.pendingRegions = Collections.synchronizedList(new ArrayList());
     this.uploadScheduler = Executors.newSingleThreadScheduledExecutor();
     this.uploadScheduler.scheduleAtFixedRate(this::uploadSignData, 5, 5, TimeUnit.SECONDS);
+  }
+
+  public long getMsSinceLastChunk() {
+    return (System.nanoTime() - this.chunkLastSeenAt) / 1000000;
   }
 
   @Override
@@ -75,6 +80,7 @@ public class SignInfoListener extends SessionAdapter {
       };
       this.pendingRegions.add(
           new ScanRegion(signs, bounds, this.navigation.getOperatorDimension()));
+      this.chunkLastSeenAt = System.nanoTime();
     } else if (packet instanceof ClientboundChunkBatchFinishedPacket) {
       // Nowhere else uses chunk data, so handle this here
       // The server won't send more chunks until we've acknowledged it

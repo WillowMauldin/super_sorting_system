@@ -5,26 +5,36 @@ import me.mauldin.super_sorting_system.Config;
 import me.mauldin.super_sorting_system.Operator;
 import me.mauldin.super_sorting_system.Operator.Agent;
 import me.mauldin.super_sorting_system.Operator.Operation;
+import me.mauldin.super_sorting_system.Operator.OperationKind;
 import me.mauldin.super_sorting_system.Operator.PollOperationResponse;
+import me.mauldin.super_sorting_system.Operator.ScanInventoryOperationKind;
+import me.mauldin.super_sorting_system.Operator.ScanSignsOperationKind;
+import me.mauldin.super_sorting_system.bot.operations.ScanInventory;
+import me.mauldin.super_sorting_system.bot.operations.ScanSigns;
 import net.raphimc.minecraftauth.step.java.StepMCProfile.MCProfile;
 import net.raphimc.minecraftauth.step.java.StepMCToken.MCToken;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession.FullJavaSession;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.auth.SessionService;
 import org.geysermc.mcprotocollib.network.ClientSession;
+import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.event.session.ConnectedEvent;
 import org.geysermc.mcprotocollib.network.event.session.DisconnectedEvent;
 import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
 import org.geysermc.mcprotocollib.network.factory.ClientNetworkSessionFactory;
+import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundFinishConfigurationPacket;
 
 public class Bot {
   private boolean isConnected;
-  private Navigation navigation;
+  public final Navigation navigation;
+  public final SignInfoListener signInfo;
   private Operator operator;
   private Agent agent;
   private Thread mainLoopThread;
+  public final ClientSession client;
 
   public Bot(Config config, Operator operator, Agent agent) throws Exception {
     this.operator = operator;
@@ -39,7 +49,7 @@ public class Bot {
         new MinecraftProtocol(
             new GameProfile(mcProfile.getId(), mcProfile.getName()), mcToken.getAccessToken());
 
-    ClientSession client =
+    client =
         ClientNetworkSessionFactory.factory()
             .setRemoteSocketAddress(
                 new InetSocketAddress(config.getMcServerHost(), config.getMcServerPort()))
@@ -48,10 +58,11 @@ public class Bot {
     client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
 
     this.navigation = new Navigation(client, this.operator, this.agent);
+    this.signInfo = new SignInfoListener(navigation, this.operator, this.agent);
 
     client.addListener(new ConnectionListeners());
     client.addListener(navigation);
-    client.addListener(new SignInfoListener(navigation, this.operator, this.agent));
+    client.addListener(signInfo);
     client.addListener(
         new SessionAdapter() {
           @Override
@@ -64,6 +75,13 @@ public class Bot {
             System.out.println(
                 "Disconnected: " + event.getReason() + " (" + event.getCause() + ")");
             isConnected = false;
+          }
+
+          @Override
+          public void packetReceived(Session session, Packet packet) {
+            if (packet instanceof ClientboundFinishConfigurationPacket) {
+              mainLoopThread.start();
+            }
           }
         });
 
@@ -80,7 +98,6 @@ public class Bot {
                 e.printStackTrace();
               }
             });
-    mainLoopThread.start();
   }
 
   public boolean getIsConnected() {
@@ -102,11 +119,27 @@ public class Bot {
       }
 
       Operation op = ((PollOperationResponse.OperationAvailable) pollResult).getOperation();
+      OperationKind kind = op.getKind();
 
       System.out.println(
           "acquired operation " + op.getKind().getClass().getName() + " (" + op.getId() + ")");
 
-      Thread.sleep(1000);
+      try {
+
+        if (kind instanceof ScanSignsOperationKind scanSignsKind) {
+          ScanSigns.execute(this, scanSignsKind);
+        } else if (kind instanceof ScanInventoryOperationKind scanInventoryKind) {
+          ScanInventory.execute(this, scanInventoryKind);
+        } else {
+          throw new Exception("unrecognized operation kind");
+        }
+
+        this.operator.operationComplete(this.agent, op, "Complete");
+      } catch (Exception e) {
+        System.out.println("operation failed: " + e);
+
+        this.operator.operationComplete(this.agent, op, "Aborted");
+      }
     }
   }
 }

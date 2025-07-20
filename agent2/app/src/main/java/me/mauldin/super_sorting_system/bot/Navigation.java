@@ -16,13 +16,16 @@ import org.geysermc.mcprotocollib.network.ClientSession;
 import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
 import org.geysermc.mcprotocollib.network.packet.Packet;
+import org.geysermc.mcprotocollib.protocol.data.game.ClientCommand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerSpawnInfo;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PositionElement;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRespawnPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerCombatKillPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerPositionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundForgetLevelChunkPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelChunkWithLightPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 
@@ -51,19 +54,40 @@ public class Navigation extends SessionAdapter {
   public void packetReceived(Session session, Packet packet) {
     if (packet instanceof ClientboundRespawnPacket respawnPacket) {
       PlayerSpawnInfo spawnInfo = respawnPacket.getCommonPlayerSpawnInfo();
+      if (spawnInfo.getLastDeathPos() != null) {
+        session.send(new ServerboundClientCommandPacket(ClientCommand.RESPAWN));
+      }
       this.dimension = spawnInfo.getWorldName().toString();
       this.dimensionReady = true;
+      this.positionReady = false;
       this.loadedChunks.clear();
     } else if (packet instanceof ClientboundLoginPacket loginPacket) {
       PlayerSpawnInfo spawnInfo = loginPacket.getCommonPlayerSpawnInfo();
+      if (spawnInfo.getLastDeathPos() != null) {
+        session.send(new ServerboundClientCommandPacket(ClientCommand.RESPAWN));
+      }
       this.dimension = spawnInfo.getWorldName().toString();
       this.dimensionReady = true;
+      this.positionReady = false;
       this.loadedChunks.clear();
     } else if (packet instanceof ClientboundLevelChunkWithLightPacket chunkPacket) {
       loadedChunks.add(new ChunkPos(chunkPacket.getX(), chunkPacket.getZ()));
     } else if (packet instanceof ClientboundForgetLevelChunkPacket chunkPacket) {
       loadedChunks.add(new ChunkPos(chunkPacket.getX(), chunkPacket.getZ()));
+    } else if (packet instanceof ClientboundPlayerCombatKillPacket) {
+      this.dimensionReady = false;
+      this.positionReady = false;
+      System.out.println("Entered respawn screen");
+      session.send(new ServerboundClientCommandPacket(ClientCommand.RESPAWN));
     } else if (packet instanceof ClientboundPlayerPositionPacket positionPacket) {
+      session.send(new ServerboundAcceptTeleportationPacket(positionPacket.getId()));
+
+      if (this.positionReady) {
+        System.out.println("nav: resending position after declined tp");
+        this.client.send(new ServerboundMovePlayerPosPacket(true, false, this.x, this.y, this.z));
+        return;
+      }
+
       Vector3d position = positionPacket.getPosition();
       double x = position.getX();
       double y = position.getY();
@@ -88,16 +112,16 @@ public class Navigation extends SessionAdapter {
         this.z = z;
       }
 
-      session.send(new ServerboundAcceptTeleportationPacket(positionPacket.getId()));
+      System.out.println("nav: position accepted");
 
       this.positionReady = true;
     }
   }
 
   public String getOperatorDimension() {
-    if (this.dimension == "minecraft:the_nether") {
+    if (this.dimension.equals("minecraft:the_nether")) {
       return "TheNether";
-    } else if (this.dimension == "minecraft:the_end") {
+    } else if (this.dimension.equals("minecraft:the_end")) {
       return "TheEnd";
     }
 
@@ -109,15 +133,21 @@ public class Navigation extends SessionAdapter {
   }
 
   public Location getCurrentLocation() {
-    return new Location(new Vec3(((int) Math.floor(this.x)), ((int) Math.floor(this.y)), ((int) Math.floor(this.z))), this.getOperatorDimension());
+    return new Location(
+        new Vec3(
+            ((int) Math.floor(this.x)), ((int) Math.floor(this.y)), ((int) Math.floor(this.z))),
+        this.getOperatorDimension());
   }
 
   public void navigateTo(int x, int y, int z, String dimension)
       throws IOException, InterruptedException, Exception {
+    System.out.println(
+        "nav: starting navigation to (" + x + ", " + y + ", " + z + ") [" + dimension + "]");
     if (((int) Math.floor(this.x)) == x
         && ((int) Math.floor(this.y)) == y
         && ((int) Math.floor(this.z)) == z
         && dimension.equals(this.getOperatorDimension())) {
+      System.out.println("nav: exiting - already at destination");
       return;
     }
 
@@ -133,7 +163,7 @@ public class Navigation extends SessionAdapter {
     for (PfResultNode node : path) {
       if (node instanceof PfResultNode.Vec vecNode) {
         Vec3 vec = vecNode.getVec();
-        this.flyTo((int) vec.getX(), (int) vec.getY(), (int) vec.getY());
+        this.flyTo((int) vec.getX(), (int) vec.getY(), (int) vec.getZ());
       } else if (node instanceof PfResultNode.Portal portalNode) {
         Vec3 vec = portalNode.getVec();
         this.takePortal((int) vec.getX(), (int) vec.getY(), (int) vec.getZ());
@@ -141,31 +171,44 @@ public class Navigation extends SessionAdapter {
         throw new Exception("nav: unrecognized path node");
       }
     }
+
+    System.out.println("nav: complete");
   }
 
-  private void flyTo(int x, int y, int z) throws InterruptedException {
+  public void flyTo(int x, int y, int z) throws InterruptedException {
     this.x = x + 0.5;
     this.y = y;
     this.z = z + 0.5;
+    System.out.println("nav: fly to (" + x + ", " + y + ", " + z + ")");
+    Thread.sleep(100);
+    // Relies on /gamerule disablePlayerMovementCheck true
     this.client.send(new ServerboundMovePlayerPosPacket(true, false, this.x, this.y, this.z));
+    Thread.sleep(100);
 
     while (!this.isChunkLoadedAtPos(x, z)) {
+      this.client.send(new ServerboundMovePlayerPosPacket(true, false, this.x, this.y, this.z));
       Thread.sleep(100);
     }
+    System.out.println("nav: chunk loaded");
   }
 
-  private void takePortal(int x, int y, int z) throws InterruptedException {
+  public void takePortal(int x, int y, int z) throws InterruptedException {
+    System.out.println("nav: taking portal from " + this.getOperatorDimension() + "...");
     String startingDim = this.dimension;
-    Thread.sleep(700);
-    this.flyTo(x, y, z);
+    Thread.sleep(1500);
+    this.client.send(new ServerboundMovePlayerPosPacket(true, false, x + 0.5, y, z + 0.5));
 
     while (startingDim.equals(this.dimension)) {
+      this.client.send(new ServerboundMovePlayerPosPacket(true, false, x + 0.5, y, z + 0.5));
       Thread.sleep(100);
     }
+
+    System.out.println("dimension transferred");
 
     while (!this.isChunkLoadedAtPos((int) this.x, (int) this.z)) {
       Thread.sleep(100);
     }
+    System.out.println("nav: portal taken");
   }
 
   // x and z are game coordinates, not chunk coordinates

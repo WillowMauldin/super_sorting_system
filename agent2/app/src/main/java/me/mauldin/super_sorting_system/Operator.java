@@ -350,7 +350,9 @@ public class Operator {
       case "ScanSigns":
         Location location = locationFromJson(json.getJSONObject("location"));
         Vec3 takePortal =
-            json.has("take_portal") ? vec3FromJson(json.getJSONObject("take_portal")) : null;
+            json.has("take_portal") && !json.isNull("take_portal")
+                ? vec3FromJson(json.getJSONObject("take_portal"))
+                : null;
         return new ScanSignsOperationKind(location, takePortal);
       default:
         throw new IllegalArgumentException("Unknown operation type: " + type);
