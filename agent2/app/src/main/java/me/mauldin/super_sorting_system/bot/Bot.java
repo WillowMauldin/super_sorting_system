@@ -4,6 +4,8 @@ import java.net.InetSocketAddress;
 import me.mauldin.super_sorting_system.Config;
 import me.mauldin.super_sorting_system.Operator;
 import me.mauldin.super_sorting_system.Operator.Agent;
+import me.mauldin.super_sorting_system.Operator.Operation;
+import me.mauldin.super_sorting_system.Operator.PollOperationResponse;
 import net.raphimc.minecraftauth.step.java.StepMCProfile.MCProfile;
 import net.raphimc.minecraftauth.step.java.StepMCToken.MCToken;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession.FullJavaSession;
@@ -22,6 +24,7 @@ public class Bot {
   private Navigation navigation;
   private Operator operator;
   private Agent agent;
+  private Thread mainLoopThread;
 
   public Bot(Config config, Operator operator, Agent agent) throws Exception {
     this.operator = operator;
@@ -66,9 +69,44 @@ public class Bot {
 
     client.connect();
     this.isConnected = true;
+
+    mainLoopThread =
+        new Thread(
+            () -> {
+              try {
+                mainLoop();
+              } catch (Exception e) {
+                System.err.println("Main loop error: " + e.getMessage());
+                e.printStackTrace();
+              }
+            });
+    mainLoopThread.start();
   }
 
   public boolean getIsConnected() {
     return this.isConnected;
+  }
+
+  public void mainLoop() throws Exception {
+    while (this.isConnected && !Thread.currentThread().isInterrupted()) {
+      if (!this.navigation.isReady()) {
+        Thread.sleep(500);
+        continue;
+      }
+      PollOperationResponse pollResult =
+          this.operator.pollOperation(this.agent, this.navigation.getCurrentLocation(), false);
+
+      if (!(pollResult instanceof PollOperationResponse.OperationAvailable)) {
+        Thread.sleep(1000);
+        continue;
+      }
+
+      Operation op = ((PollOperationResponse.OperationAvailable) pollResult).getOperation();
+
+      System.out.println(
+          "acquired operation " + op.getKind().getClass().getName() + " (" + op.getId() + ")");
+
+      Thread.sleep(1000);
+    }
   }
 }

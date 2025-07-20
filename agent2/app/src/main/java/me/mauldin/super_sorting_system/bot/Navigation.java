@@ -28,9 +28,13 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 
 public class Navigation extends SessionAdapter {
   private String dimension = "";
+  private boolean dimensionReady = false;
+
   private double x = 0;
   private double y = 0;
   private double z = 0;
+  private boolean positionReady = false;
+
   private Set<ChunkPos> loadedChunks = Collections.synchronizedSet(new HashSet());
 
   private ClientSession client;
@@ -48,10 +52,12 @@ public class Navigation extends SessionAdapter {
     if (packet instanceof ClientboundRespawnPacket respawnPacket) {
       PlayerSpawnInfo spawnInfo = respawnPacket.getCommonPlayerSpawnInfo();
       this.dimension = spawnInfo.getWorldName().toString();
+      this.dimensionReady = true;
       this.loadedChunks.clear();
     } else if (packet instanceof ClientboundLoginPacket loginPacket) {
       PlayerSpawnInfo spawnInfo = loginPacket.getCommonPlayerSpawnInfo();
       this.dimension = spawnInfo.getWorldName().toString();
+      this.dimensionReady = true;
       this.loadedChunks.clear();
     } else if (packet instanceof ClientboundLevelChunkWithLightPacket chunkPacket) {
       loadedChunks.add(new ChunkPos(chunkPacket.getX(), chunkPacket.getZ()));
@@ -83,6 +89,8 @@ public class Navigation extends SessionAdapter {
       }
 
       session.send(new ServerboundAcceptTeleportationPacket(positionPacket.getId()));
+
+      this.positionReady = true;
     }
   }
 
@@ -96,6 +104,14 @@ public class Navigation extends SessionAdapter {
     return "Overworld";
   }
 
+  public boolean isReady() {
+    return this.dimensionReady && this.positionReady;
+  }
+
+  public Location getCurrentLocation() {
+    return new Location(new Vec3(((int) Math.floor(this.x)), ((int) Math.floor(this.y)), ((int) Math.floor(this.z))), this.getOperatorDimension());
+  }
+
   public void navigateTo(int x, int y, int z, String dimension)
       throws IOException, InterruptedException, Exception {
     if (((int) Math.floor(this.x)) == x
@@ -107,9 +123,7 @@ public class Navigation extends SessionAdapter {
 
     PathfindingResponse resp =
         this.operator.findPath(
-            this.agent,
-            new Location(new Vec3(this.x, this.y, this.z), this.getOperatorDimension()),
-            new Location(new Vec3(x, y, z), dimension));
+            this.agent, this.getCurrentLocation(), new Location(new Vec3(x, y, z), dimension));
 
     if (!(resp instanceof PathfindingResponse.PathFound pathFound)) {
       throw new Exception("nav: error getting path");

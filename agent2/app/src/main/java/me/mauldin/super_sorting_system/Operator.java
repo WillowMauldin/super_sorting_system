@@ -371,7 +371,7 @@ public class Operator {
   }
 
   private Vec3 vec3FromJson(JSONObject json) {
-    return new Vec3(json.getDouble("x"), json.getDouble("y"), json.getDouble("z"));
+    return new Vec3(json.getInt("x"), json.getInt("y"), json.getInt("z"));
   }
 
   private PfResultNode pfResultNodeFromJson(JSONObject json) {
@@ -436,23 +436,23 @@ public class Operator {
   }
 
   public static class Vec3 {
-    private final double x, y, z;
+    private final int x, y, z;
 
-    public Vec3(double x, double y, double z) {
+    public Vec3(int x, int y, int z) {
       this.x = x;
       this.y = y;
       this.z = z;
     }
 
-    public double getX() {
+    public int getX() {
       return x;
     }
 
-    public double getY() {
+    public int getY() {
       return y;
     }
 
-    public double getZ() {
+    public int getZ() {
       return z;
     }
   }
