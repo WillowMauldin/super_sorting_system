@@ -18,6 +18,7 @@ import java.util.List;
 import org.json.JSONTokener;
 import org.cloudburstmc.math.vector.Vector3d;
 
+
 public class Navigation extends SessionAdapter {
     private String dimension = "";
     private double x = 0;

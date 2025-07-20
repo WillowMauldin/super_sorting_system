@@ -14,12 +14,18 @@ import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
 import org.geysermc.mcprotocollib.network.factory.ClientNetworkSessionFactory;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
+import me.mauldin.super_sorting_system.Operator;
+import me.mauldin.super_sorting_system.Operator.Agent;
 
 public class Bot {
     private boolean isConnected;
     private Navigation navigation;
+    private Operator operator;
+    private Agent agent;
 
-    public Bot(Config config) throws Exception {
+    public Bot(Config config, Operator operator, Agent agent) throws Exception {
+	this.operator = operator;
+	this.agent = agent;
 	this.navigation = new Navigation();
 
         FullJavaSession javaSession = McAuth.getSession();
@@ -38,7 +44,7 @@ public class Bot {
 
         client.addListener(new ConnectionListeners());
         client.addListener(navigation);
-        client.addListener(new SignInfoListener(navigation));
+        client.addListener(new SignInfoListener(navigation, this.operator, this.agent));
         client.addListener(new SessionAdapter() {
             @Override
             public void connected(ConnectedEvent event) {
