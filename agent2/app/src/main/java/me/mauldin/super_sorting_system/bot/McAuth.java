@@ -11,34 +11,38 @@ import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession.FullJavaS
 import net.raphimc.minecraftauth.step.msa.StepMsaDeviceCode;
 
 public class McAuth {
-    public static FullJavaSession getSession() throws Exception {
-        HttpClient httpClient = MinecraftAuth.createHttpClient();
+  public static FullJavaSession getSession() throws Exception {
+    HttpClient httpClient = MinecraftAuth.createHttpClient();
 
-        // Attempt to load existing credentials
-        File authFile = new File("auth.json");
-        if (authFile.exists()) {
-            FileReader reader = new FileReader(authFile);
-            JsonObject serializedSession = JsonParser.parseReader(reader).getAsJsonObject();
-            FullJavaSession loadedSession = MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.fromJson(serializedSession);
-            System.out.println("Loaded existing session for: "
-                    + loadedSession.getMcProfile().getName());
-            FullJavaSession readyToUseSession = MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.refresh(httpClient, loadedSession);
-            return readyToUseSession;
-        }
+    // Attempt to load existing credentials
+    File authFile = new File("auth.json");
+    if (authFile.exists()) {
+      FileReader reader = new FileReader(authFile);
+      JsonObject serializedSession = JsonParser.parseReader(reader).getAsJsonObject();
+      FullJavaSession loadedSession =
+          MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.fromJson(serializedSession);
+      System.out.println("Loaded existing session for: " + loadedSession.getMcProfile().getName());
+      FullJavaSession readyToUseSession =
+          MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.refresh(httpClient, loadedSession);
+      return readyToUseSession;
+    }
 
-        // Get new login
-        System.out.println("No valid session found, starting new login...");
-        FullJavaSession javaSession = MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.getFromInput(
-                httpClient, new StepMsaDeviceCode.MsaDeviceCodeCallback(msaDeviceCode -> {
-                    System.out.println("Go to " + msaDeviceCode.getDirectVerificationUri());
+    // Get new login
+    System.out.println("No valid session found, starting new login...");
+    FullJavaSession javaSession =
+        MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.getFromInput(
+            httpClient,
+            new StepMsaDeviceCode.MsaDeviceCodeCallback(
+                msaDeviceCode -> {
+                  System.out.println("Go to " + msaDeviceCode.getDirectVerificationUri());
                 }));
 
-        // Save credentials after successful login
-        JsonObject serializedSession = MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.toJson(javaSession);
-        FileWriter writer = new FileWriter(authFile);
-        writer.write(serializedSession.toString());
-        writer.flush();
+    // Save credentials after successful login
+    JsonObject serializedSession = MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.toJson(javaSession);
+    FileWriter writer = new FileWriter(authFile);
+    writer.write(serializedSession.toString());
+    writer.flush();
 
-        return javaSession;
-    }
+    return javaSession;
+  }
 }
