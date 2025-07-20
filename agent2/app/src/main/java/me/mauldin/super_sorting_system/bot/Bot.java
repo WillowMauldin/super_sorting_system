@@ -35,6 +35,7 @@ public class Bot {
   private Agent agent;
   private Thread mainLoopThread;
   public final ClientSession client;
+  public final InventoryTracker inventoryTracker;
 
   public Bot(Config config, Operator operator, Agent agent) throws Exception {
     this.operator = operator;
@@ -59,6 +60,7 @@ public class Bot {
 
     this.navigation = new Navigation(client, this.operator, this.agent);
     this.signInfo = new SignInfoListener(navigation, this.operator, this.agent);
+    this.inventoryTracker = new InventoryTracker(client, this.operator, this.agent);
 
     client.addListener(new ConnectionListeners());
     client.addListener(navigation);
