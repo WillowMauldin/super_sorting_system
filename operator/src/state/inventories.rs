@@ -38,7 +38,7 @@ impl InventoryState {
 
     pub fn get_listing(&self, options: InventoryListingOptions) -> Vec<Item> {
         let mut item_map = HashMap::<u64, Item>::new();
-        let mut full_shulker_map = HashMap::<u64, u32>::new();
+        let mut full_shulker_hashes = HashMap::<u64, u64>::new(); // item_hash -> shulker_hash
 
         let insert_item = |item: &Item, item_map: &mut HashMap<u64, Item>| {
             let mapped_item = item_map.get_mut(&item.stackable_hash);
@@ -69,9 +69,7 @@ impl InventoryState {
                             .all(|item| item.count == item.stack_size);
                         
                         if all_same_type && all_full_stacks {
-                            let shulker_count = full_shulker_map.entry(first_item.stackable_hash)
-                                .or_insert(0);
-                            *shulker_count += 1;
+                            full_shulker_hashes.insert(first_item.stackable_hash, item.stackable_hash);
                             Some(item.stackable_hash) // This shulker's hash represents a full shulker of the contained item
                         } else {
                             None
@@ -91,6 +89,13 @@ impl InventoryState {
                 } else {
                     insert_item(item, &mut item_map);
                 }
+            }
+        }
+
+        // Update all items in the map with their corresponding full_shulker_stackable_hash
+        for (item_hash, shulker_hash) in full_shulker_hashes {
+            if let Some(item) = item_map.get_mut(&item_hash) {
+                item.full_shulker_stackable_hash = Some(shulker_hash);
             }
         }
 
