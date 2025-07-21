@@ -70,7 +70,9 @@ export const Delivery = ({ actionController }: Props) => {
           <ul>
             {selectedItemsFinal.map((item) => (
               <li key={item.item.stackable_hash}>
-                {item.item.prettyPrinted} x{item.count}
+                {item.item.prettyPrinted} {item.shulkerCount > 0 
+                  ? `x${item.shulkerCount} shulkers` 
+                  : `x${item.itemCount} items`}
               </li>
             ))}
           </ul>

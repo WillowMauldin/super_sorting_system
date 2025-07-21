@@ -127,6 +127,7 @@ impl UnhashedItem {
             stack_size: self.stack_size(),
             data_components: self.data_components,
             stackable_hash,
+            full_shulker_stackable_hash: None,
             shulker_data,
         }
     }
@@ -262,6 +263,9 @@ pub struct Item {
 
     #[serde(with = "string")]
     pub stackable_hash: u64,
+
+    #[serde(with = "string")]
+    pub full_shulker_stackable_hash: Option<u64>,
 
     #[serde(skip)]
     pub shulker_data: Option<Box<ShulkerData>>,

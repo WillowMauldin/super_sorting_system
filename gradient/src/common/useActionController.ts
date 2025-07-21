@@ -5,6 +5,7 @@ import {
 } from '../api/delivery';
 import { pickupItems as apiPickupItems } from '../api/pickup';
 import { complexTransfer as apiComplexTransfer } from '../api/complex_transfer';
+import { SelectedItemsFinal } from './ItemSelector';
 
 export type ActionStatus = 'in-progress' | 'complete' | 'failed';
 export type ActionDetails = {
@@ -30,7 +31,7 @@ export type Action = DeliveryAction | PickupAction | ComplexTransfer;
 
 export type ActionController = {
   currentActions: Action[];
-  deliverItems: (node: string, items: DeliveryItems) => void;
+  deliverItems: (node: string, items: SelectedItemsFinal) => void;
   pickupItems: (node: string, repeatUntilEmpty?: boolean) => void;
   complexTransfer: (from_complex: string, to_complex: string) => void;
 };
@@ -63,7 +64,7 @@ export const useActionController = (): ActionController => {
     }, 1000 * 15);
   };
 
-  const deliverItems = (node: string, items: DeliveryItems) => {
+  const deliverItems = (node: string, items: SelectedItemsFinal) => {
     const actionId = getNextActionId();
     setCurrentActions((actions) => [
       ...actions,
@@ -75,7 +76,13 @@ export const useActionController = (): ActionController => {
       },
     ]);
 
-    apiDeliverItems(node, items)
+    const deliveryItems: DeliveryItems = items.map(({ item, shulkerCount, itemCount }) => ({
+      item,
+      shulkerCount,
+      itemCount,
+    }));
+    
+    apiDeliverItems(node, deliveryItems)
       .then(() => finishAction(actionId, 'complete'))
       .catch(() => finishAction(actionId, 'failed'));
   };

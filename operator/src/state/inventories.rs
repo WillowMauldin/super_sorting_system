@@ -38,6 +38,7 @@ impl InventoryState {
 
     pub fn get_listing(&self, options: InventoryListingOptions) -> Vec<Item> {
         let mut item_map = HashMap::<u64, Item>::new();
+        let mut full_shulker_map = HashMap::<u64, u32>::new();
 
         let insert_item = |item: &Item, item_map: &mut HashMap<u64, Item>| {
             let mapped_item = item_map.get_mut(&item.stackable_hash);
@@ -59,8 +60,29 @@ impl InventoryState {
                             || (options.shulker_unpacking == ShulkerUnpacking::UnnamedOnly
                                 && shulker_data.name.is_none()));
 
+                    // Check if this shulker contains full stacks of a single item type
+                    let full_shulker_hash = if !is_empty && shulker_data.contained_items.len() > 0 {
+                        let first_item = &shulker_data.contained_items[0];
+                        let all_same_type = shulker_data.contained_items.iter()
+                            .all(|item| item.stackable_hash == first_item.stackable_hash);
+                        let all_full_stacks = shulker_data.contained_items.iter()
+                            .all(|item| item.count == item.stack_size);
+                        
+                        if all_same_type && all_full_stacks {
+                            let shulker_count = full_shulker_map.entry(first_item.stackable_hash)
+                                .or_insert(0);
+                            *shulker_count += 1;
+                            Some(item.stackable_hash) // This shulker's hash represents a full shulker of the contained item
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    };
+
                     if should_unpack {
-                        for contained_item in &shulker_data.contained_items {
+                        for mut contained_item in shulker_data.contained_items.clone() {
+                            contained_item.full_shulker_stackable_hash = full_shulker_hash;
                             insert_item(&contained_item, &mut item_map);
                         }
                     } else {

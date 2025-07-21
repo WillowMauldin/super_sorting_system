@@ -42,4 +42,5 @@ export type Item = {
   nbt: any;
   stack_size: number;
   stackable_hash: string;
+  full_shulker_stackable_hash?: string;
 };

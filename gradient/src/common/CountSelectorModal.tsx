@@ -3,10 +3,15 @@ import { ExtendedItem } from '../helpers';
 import { KeyboardEvent, useState } from 'react';
 
 type Denomination = 'item' | 'stack' | 'shulker';
+type DeliveryRequest = {
+  shulkerCount: number;
+  itemCount: number;
+};
+
 type Props = {
   item: ExtendedItem;
-  startingCount?: number;
-  close: (selectedCount: number | null) => void;
+  currentRequest?: DeliveryRequest;
+  close: (selectedCount: DeliveryRequest | null) => void;
 };
 
 const formatShort = (num: number): string => {
@@ -14,12 +19,18 @@ const formatShort = (num: number): string => {
   return String(rounded);
 };
 
-export const CountSelectorModal = ({ startingCount, item, close }: Props) => {
+export const CountSelectorModal = ({ currentRequest, item, close }: Props) => {
   const [debug, setDebug] = useState(false);
-  const [rawCount, setRawCount] = useState(startingCount ? startingCount : 1);
-  const [denomination, setDenomination] = useState<Denomination>(
-    startingCount ? 'item' : 'stack',
-  );
+  const [rawCount, setRawCount] = useState(() => {
+    if (currentRequest?.shulkerCount > 0) return currentRequest.shulkerCount;
+    if (currentRequest?.itemCount > 0) return currentRequest.itemCount;
+    return 1;
+  });
+  const [denomination, setDenomination] = useState<Denomination>(() => {
+    if (currentRequest?.shulkerCount > 0) return 'shulker';
+    if (currentRequest?.itemCount > 0) return 'item';
+    return 'stack';
+  });
 
   const stackMult = item.stack_size;
   const shulkerMult = stackMult * 27;
@@ -35,7 +46,19 @@ export const CountSelectorModal = ({ startingCount, item, close }: Props) => {
   const clampValue = (count: number) =>
     Math.max(0, Math.min(Math.round(count), item.count));
 
-  const onClose = () => close(appliedCount);
+  const onClose = () => {
+    if (denomination === 'shulker') {
+      close({ 
+        shulkerCount: rawCount,
+        itemCount: 0
+      });
+    } else {
+      close({ 
+        shulkerCount: 0,
+        itemCount: appliedCount
+      });
+    }
+  };
 
   const onKeyDown = (ev: KeyboardEvent) => {
     if (ev.key === 'Enter') {

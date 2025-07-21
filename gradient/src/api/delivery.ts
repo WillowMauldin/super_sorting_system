@@ -5,7 +5,8 @@ import { HoldRequestFilter } from './automation_types';
 
 export type DeliveryItems = {
   item: ExtendedItem;
-  count: number;
+  shulkerCount: number;
+  itemCount: number;
 }[];
 
 export const deliverItems = async (
@@ -23,16 +24,45 @@ export const deliverItems = async (
   const holdsToDeliver: string[] = [];
 
   try {
-    const itemRequests: HoldRequestFilter[] = itemList.map(
-      ({ item, count }) => ({
-        ItemMatch: {
-          match_criteria: {
-            StackableHash: { stackable_hash: item.stackable_hash },
+    const itemRequests: HoldRequestFilter[] = [];
+    
+    for (const { item, shulkerCount, itemCount } of itemList) {
+      if (itemCount > 0) {
+        itemRequests.push({
+          ItemMatch: {
+            match_criteria: {
+              StackableHash: { stackable_hash: item.stackable_hash },
+            },
+            total: itemCount,
           },
-          total: count,
-        },
-      }),
-    );
+        });
+      }
+      
+      if (shulkerCount > 0) {
+        // Request full shulkers containing the item using the full_shulker_stackable_hash
+        if (item.full_shulker_stackable_hash) {
+          itemRequests.push({
+            ItemMatch: {
+              match_criteria: {
+                StackableHash: { stackable_hash: item.full_shulker_stackable_hash },
+              },
+              total: shulkerCount,
+            },
+          });
+        } else {
+          // Fallback: request equivalent number of individual items
+          const totalItems = shulkerCount * item.stack_size * 27;
+          itemRequests.push({
+            ItemMatch: {
+              match_criteria: {
+                StackableHash: { stackable_hash: item.stackable_hash },
+              },
+              total: totalItems,
+            },
+          });
+        }
+      }
+    }
     const holdRequestResults = await createHold(itemRequests);
 
     for (const holdRes of holdRequestResults.data.results) {
