@@ -107,6 +107,8 @@ public class Bot {
     return this.isConnected;
   }
 
+  private boolean atHome = false;
+
   public void mainLoop() throws Exception {
     while (this.isConnected && !Thread.currentThread().isInterrupted()) {
       if (!this.navigation.isReady()) {
@@ -117,10 +119,43 @@ public class Bot {
           this.operator.pollOperation(this.agent, this.navigation.getCurrentLocation(), false);
 
       if (!(pollResult instanceof PollOperationResponse.OperationAvailable)) {
+        if (!atHome) {
+          try {
+            var signConfig = this.operator.getSignConfig();
+            var complexes = signConfig.getData().optJSONObject("complexes");
+
+            if (complexes != null && complexes.length() > 0) {
+              String complexKey = complexes.keys().next();
+              var complex = complexes.getJSONObject(complexKey);
+
+              if (complex.has("Tower")) {
+                var tower = complex.getJSONObject("Tower");
+                String dimension = tower.getString("dimension");
+                var origin = tower.getJSONObject("origin");
+                this.navigation.navigateTo(
+                    origin.getInt("x"), origin.getInt("y"), origin.getInt("z"), dimension);
+              } else if (complex.has("FlatFloor")) {
+                var flatFloor = complex.getJSONObject("FlatFloor");
+                String dimension = flatFloor.getString("dimension");
+                var bounds = flatFloor.getJSONArray("bounds");
+                var firstBound = bounds.getJSONObject(0);
+                int yLevel = flatFloor.getInt("y_level");
+                this.navigation.navigateTo(
+                    firstBound.getInt("x"), yLevel + 1, firstBound.getInt("z"), dimension);
+              }
+            }
+
+            atHome = true;
+          } catch (Exception e) {
+            System.err.println("Failed to navigate home: " + e.getMessage());
+            e.printStackTrace();
+          }
+        }
         Thread.sleep(1000);
         continue;
       }
 
+      atHome = false; // Reset home flag when starting an operation
       Operation op = ((PollOperationResponse.OperationAvailable) pollResult).getOperation();
       OperationKind kind = op.getKind();
 
