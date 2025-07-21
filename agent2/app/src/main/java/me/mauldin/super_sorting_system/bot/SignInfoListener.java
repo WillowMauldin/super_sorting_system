@@ -113,4 +113,8 @@ public class SignInfoListener extends SessionAdapter {
       }
     }
   }
+
+  public void shutdown() {
+    this.uploadScheduler.shutdown();
+  }
 }

@@ -1,6 +1,9 @@
 package me.mauldin.super_sorting_system.bot;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import me.mauldin.super_sorting_system.Config;
 import me.mauldin.super_sorting_system.Operator;
 import me.mauldin.super_sorting_system.Operator.Agent;
@@ -36,6 +39,7 @@ public class Bot {
   private Thread mainLoopThread;
   public final ClientSession client;
   public final InventoryTracker inventoryTracker;
+  private final ScheduledExecutorService heartbeatScheduler;
 
   public Bot(Config config, Operator operator, Agent agent) throws Exception {
     this.operator = operator;
@@ -66,6 +70,19 @@ public class Bot {
     client.addListener(navigation);
     client.addListener(signInfo);
     client.addListener(inventoryTracker);
+
+    this.heartbeatScheduler = Executors.newSingleThreadScheduledExecutor();
+    this.heartbeatScheduler.scheduleAtFixedRate(
+        () -> {
+          try {
+            this.operator.heartbeat(this.agent);
+          } catch (Exception e) {
+            System.out.println("Heartbeat failed: " + e);
+          }
+        },
+        15,
+        15,
+        TimeUnit.SECONDS);
     client.addListener(
         new SessionAdapter() {
           @Override
@@ -78,6 +95,7 @@ public class Bot {
             System.out.println(
                 "Disconnected: " + event.getReason() + " (" + event.getCause() + ")");
             isConnected = false;
+	    shutdown();
           }
 
           @Override
@@ -105,6 +123,17 @@ public class Bot {
 
   public boolean getIsConnected() {
     return this.isConnected;
+  }
+
+  public void shutdown() {
+    if (this.isConnected) {
+      this.isConnected = false;
+      client.disconnect("Bot shutdown");
+    }
+
+    this.signInfo.shutdown();
+    this.heartbeatScheduler.shutdown();
+    mainLoopThread.interrupt();
   }
 
   private boolean atHome = false;
