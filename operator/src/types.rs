@@ -109,9 +109,7 @@ impl Vec2 {
 pub struct UnhashedItem {
     pub item_id: u32,
     pub count: u32,
-    pub metadata: u32,
-    pub nbt: Arc<Value>,
-    pub stack_size: u32,
+    pub data_components: Option<Arc<Value>>,
 }
 
 lazy_static::lazy_static! {
@@ -126,9 +124,8 @@ impl UnhashedItem {
         Item {
             item_id: self.item_id,
             count: self.count,
-            metadata: self.metadata,
-            nbt: self.nbt,
-            stack_size: self.stack_size,
+            stack_size: self.stack_size(),
+            data_components: self.data_components,
             stackable_hash,
             shulker_data,
         }
@@ -138,11 +135,18 @@ impl UnhashedItem {
         let mut s = DefaultHasher::new();
 
         self.item_id.hash(&mut s);
-        self.metadata.hash(&mut s);
-        let serialized_nbt = serde_json::to_string(&self.nbt).unwrap();
-        serialized_nbt.hash(&mut s);
+        let serialized_data_components = serde_json::to_string(&self.data_components).unwrap();
+        serialized_data_components.hash(&mut s);
 
         s.finish()
+    }
+
+    fn stack_size(&self) -> u32 {
+        if let Some(item) = MC_DATA.items_by_id.get(&self.item_id) {
+            item.stack_size
+        } else {
+            64
+        }
     }
 
     pub fn shulker_data(&self) -> Option<Box<ShulkerData>> {
@@ -157,14 +161,16 @@ impl UnhashedItem {
             .map(|color| color.to_string());
 
         let name = self
-            .nbt
-            .pointer("/value/display/value/Name/value")
+            .data_components
+            .as_ref()
+            .and_then(|nbt_val| nbt_val.pointer("/value/display/value/Name/value"))
             .and_then(|nbt_val| nbt_val.as_str())
             .and_then(|nbt_str| serde_json::from_str::<String>(nbt_str).ok());
 
         let contained_items_nbt = self
-            .nbt
-            .pointer("/value/BlockEntityTag/value/Items/value/value")
+            .data_components
+            .as_ref()
+            .and_then(|nbt_val| nbt_val.pointer("/minecraft:container"))
             .and_then(|nbt_val| nbt_val.as_array());
 
         let empty = contained_items_nbt
@@ -176,64 +182,26 @@ impl UnhashedItem {
                 items_list
                     .iter()
                     .flat_map(|nbt_item| {
-                        let item_mc_name = nbt_item
-                            .pointer("/id/value")
-                            .unwrap()
-                            .as_str()
-                            .unwrap()
-                            .strip_prefix("minecraft:")
-                            .unwrap();
-                        let mc_data_item = MC_DATA.items_by_name.get(item_mc_name)?;
-                        let count = nbt_item.pointer("/Count/value").unwrap().as_u64().unwrap();
-
-                        const USE_VIA_VERSION_FIX: bool = true;
-
-                        let mut nbt = nbt_item.pointer("/tag");
-
-                        if USE_VIA_VERSION_FIX {
-                            // ViaVersion appears to add this NBT tag to everything, regardless of
-                            // actual presence
-                            match nbt {
-                                Some(Value::Object(tag_map)) => {
-                                    if tag_map.len() == 2
-                                        && tag_map
-                                            .get("type")
-                                            .map_or(false, |val| val.as_str() == Some("compound"))
-                                        && tag_map.get("value").map_or(false, |val| {
-                                            val.as_object().unwrap().len() == 0
-                                        })
-                                    {
-                                        nbt = None
-                                    }
-                                }
-                                _ => {}
-                            }
+                        if *nbt_item == serde_json::Value::Null {
+                            return None;
                         }
 
+                        let item_mc_id = nbt_item.pointer("/id").unwrap().as_u64().unwrap();
+
+                        let mc_data_item = MC_DATA.items_by_id.get(&(item_mc_id as u32))?;
+                        let count = nbt_item.pointer("/amount").unwrap().as_u64().unwrap();
+
+                        let mut nbt = nbt_item.pointer("/data_components");
+
                         let nbt = nbt
-                            .map(|tag| match tag {
-                                Value::Object(tag_map) => {
-                                    let mut tag_map = tag_map.clone();
-
-                                    tag_map.insert(
-                                        String::from("name"),
-                                        Value::String(String::from("")),
-                                    );
-
-                                    Value::Object(tag_map)
-                                }
-                                _ => tag.clone(),
-                            })
+                            .map(|tag| tag.clone())
                             .unwrap_or(serde_json::Value::Null);
 
                         Some(
                             UnhashedItem {
                                 item_id: mc_data_item.id,
-                                stack_size: mc_data_item.stack_size,
-                                nbt: Arc::new(nbt),
-
                                 count: count as u32,
-                                metadata: 0,
+                                data_components: Some(Arc::new(nbt)),
                             }
                             .into_item(),
                         )
@@ -289,8 +257,7 @@ pub struct ShulkerData {
 pub struct Item {
     pub item_id: u32,
     pub count: u32,
-    pub metadata: u32,
-    pub nbt: Arc<Value>,
+    pub data_components: Option<Arc<Value>>,
     pub stack_size: u32,
 
     #[serde(with = "string")]

@@ -173,6 +173,7 @@ public class Navigation extends SessionAdapter {
     }
 
     System.out.println("nav: complete");
+    Thread.sleep(100);
   }
 
   public void flyTo(int x, int y, int z) throws InterruptedException {
@@ -212,7 +213,7 @@ public class Navigation extends SessionAdapter {
   }
 
   // x and z are game coordinates, not chunk coordinates
-  private boolean isChunkLoadedAtPos(int x, int z) {
+  public boolean isChunkLoadedAtPos(int x, int z) {
     ChunkPos pos = new ChunkPos(Math.floorDiv(x, 16), Math.floorDiv(z, 16));
     return this.loadedChunks.contains(pos);
   }

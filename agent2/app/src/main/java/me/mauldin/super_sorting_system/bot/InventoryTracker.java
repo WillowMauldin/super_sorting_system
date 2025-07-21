@@ -3,10 +3,13 @@ package me.mauldin.super_sorting_system.bot;
 import java.util.Arrays;
 import me.mauldin.super_sorting_system.Operator;
 import me.mauldin.super_sorting_system.Operator.Agent;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.mcprotocollib.network.ClientSession;
 import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
 import org.geysermc.mcprotocollib.network.packet.Packet;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerClosePacket;
@@ -14,6 +17,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.C
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundOpenScreenPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 /*
  *
@@ -36,6 +40,7 @@ public class InventoryTracker extends SessionAdapter {
   private final ClientSession client;
   private final Operator operator;
   private final Agent agent;
+  private final Navigation navigation;
 
   // 36 items correspending to 27 main inventory slots then 9 hotbar slots
   private ItemStack[] playerInventory;
@@ -45,8 +50,10 @@ public class InventoryTracker extends SessionAdapter {
   private int stateId = 0;
   private int currentlyOpenScreen = 0;
 
-  public InventoryTracker(ClientSession client, Operator operator, Agent agent) {
+  public InventoryTracker(
+      ClientSession client, Navigation navigation, Operator operator, Agent agent) {
     this.client = client;
+    this.navigation = navigation;
     this.operator = operator;
     this.agent = agent;
   }
@@ -54,6 +61,7 @@ public class InventoryTracker extends SessionAdapter {
   @Override
   public void packetReceived(Session session, Packet packet) {
     if (packet instanceof ClientboundOpenScreenPacket openScreenPacket) {
+      System.out.println("inv: screen opening");
       boolean supportedType =
           openScreenPacket.getType() == ContainerType.GENERIC_9X3
               || openScreenPacket.getType() == ContainerType.SHULKER_BOX;
@@ -66,6 +74,7 @@ public class InventoryTracker extends SessionAdapter {
       this.currentlyOpenScreen = openScreenPacket.getContainerId();
       this.containerInventory = null;
     } else if (packet instanceof ClientboundContainerSetContentPacket setContentPacket) {
+      System.out.println("set container content");
       if (setContentPacket.getContainerId() != this.currentlyOpenScreen) {
         System.out.println(
             "inv: container other than currently tracked got set content packet, initiating close");
@@ -83,6 +92,10 @@ public class InventoryTracker extends SessionAdapter {
         this.containerInventory = Arrays.copyOfRange(setContentPacket.getItems(), 0, 27);
         // Player inventory
         this.playerInventory = Arrays.copyOfRange(setContentPacket.getItems(), 27, 63);
+      }
+
+      synchronized (this) {
+        this.notifyAll();
       }
     } else if (packet instanceof ClientboundContainerSetSlotPacket setSlotPacket) {
       if (setSlotPacket.getContainerId() != this.currentlyOpenScreen) {
@@ -139,5 +152,38 @@ public class InventoryTracker extends SessionAdapter {
 
     this.currentlyOpenScreen = 0;
     this.containerInventory = null;
+  }
+
+  public void openWindowAt(int x, int y, int z) throws InterruptedException {
+    System.out.println("inv: opening window at (" + x + ", " + y + ", " + z + ")");
+    this.closeWindow();
+
+    while (!this.navigation.isChunkLoadedAtPos(x, z)) {
+      Thread.sleep(100);
+    }
+
+    while (this.currentlyOpenScreen == 0 || this.containerInventory == null) {
+      System.out.println("sending open packet");
+      this.client.send(
+          new ServerboundUseItemOnPacket(
+              Vector3i.from(x, y, z),
+              Direction.DOWN,
+              Hand.MAIN_HAND,
+              0.5f,
+              0.5f,
+              0.5f,
+              false,
+              false,
+              0));
+
+      synchronized (this) {
+        this.wait(1000);
+      }
+    }
+    System.out.println("inv: window opened");
+  }
+
+  public ItemStack[] getContainerInventory() {
+    return this.containerInventory;
   }
 }

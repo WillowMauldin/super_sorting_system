@@ -150,6 +150,8 @@ public class Operator {
     body.put("slots", itemsToJsonArray(slots));
     body.put("open_from", vec3ToJson(openFrom));
 
+    System.out.println(body.toString());
+
     HttpRequest request =
         agentRequestBuilder(agent)
             .uri(URI.create(agentEndpoint("inventory_scanned")))
@@ -321,9 +323,7 @@ public class Operator {
         JSONObject itemJson = new JSONObject();
         itemJson.put("item_id", item.getItemId());
         itemJson.put("count", item.getCount());
-        itemJson.put("metadata", item.getMetadata());
-        itemJson.put("nbt", item.getNbt());
-        itemJson.put("stack_size", item.getStackSize());
+        itemJson.put("data_components", item.getDataComponents());
         array.put(itemJson);
       } else {
         array.put(JSONObject.NULL);
@@ -601,16 +601,12 @@ public class Operator {
   public static class Item {
     private final int itemId;
     private final int count;
-    private final int metadata;
-    private final Object nbt;
-    private final int stackSize;
+    private final Object dataComponents;
 
-    public Item(int itemId, int count, int metadata, Object nbt, int stackSize) {
+    public Item(int itemId, int count, Object dataComponents) {
       this.itemId = itemId;
       this.count = count;
-      this.metadata = metadata;
-      this.nbt = nbt;
-      this.stackSize = stackSize;
+      this.dataComponents = dataComponents;
     }
 
     public int getItemId() {
@@ -621,16 +617,8 @@ public class Operator {
       return count;
     }
 
-    public int getMetadata() {
-      return metadata;
-    }
-
-    public Object getNbt() {
-      return nbt;
-    }
-
-    public int getStackSize() {
-      return stackSize;
+    public Object getDataComponents() {
+      return dataComponents;
     }
   }
 

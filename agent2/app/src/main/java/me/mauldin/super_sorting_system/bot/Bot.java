@@ -31,8 +31,8 @@ public class Bot {
   private boolean isConnected;
   public final Navigation navigation;
   public final SignInfoListener signInfo;
-  private Operator operator;
-  private Agent agent;
+  public final Operator operator;
+  public final Agent agent;
   private Thread mainLoopThread;
   public final ClientSession client;
   public final InventoryTracker inventoryTracker;
@@ -60,11 +60,12 @@ public class Bot {
 
     this.navigation = new Navigation(client, this.operator, this.agent);
     this.signInfo = new SignInfoListener(navigation, this.operator, this.agent);
-    this.inventoryTracker = new InventoryTracker(client, this.operator, this.agent);
+    this.inventoryTracker = new InventoryTracker(client, navigation, this.operator, this.agent);
 
     client.addListener(new ConnectionListeners());
     client.addListener(navigation);
     client.addListener(signInfo);
+    client.addListener(inventoryTracker);
     client.addListener(
         new SessionAdapter() {
           @Override
@@ -138,7 +139,8 @@ public class Bot {
 
         this.operator.operationComplete(this.agent, op, "Complete");
       } catch (Exception e) {
-        System.out.println("operation failed: " + e);
+        System.out.println("operation failed");
+        e.printStackTrace();
 
         this.operator.operationComplete(this.agent, op, "Aborted");
       }
