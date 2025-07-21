@@ -177,34 +177,70 @@ public class Navigation extends SessionAdapter {
   }
 
   public void flyTo(int x, int y, int z) throws InterruptedException {
-    this.x = x + 0.5;
-    this.y = y;
-    this.z = z + 0.5;
+    double xf = x + 0.5;
+    double yf = y;
+    double zf = z + 0.5;
     System.out.println("nav: fly to (" + x + ", " + y + ", " + z + ")");
     Thread.sleep(100);
-    // Relies on /gamerule disablePlayerMovementCheck true
-    this.client.send(new ServerboundMovePlayerPosPacket(true, false, this.x, this.y, this.z));
+
+    this.setLocationWithPacket(xf, yf, zf);
     Thread.sleep(100);
 
     while (!this.isChunkLoadedAtPos(x, z)) {
-      this.client.send(new ServerboundMovePlayerPosPacket(true, false, this.x, this.y, this.z));
+      this.setLocationWithPacket(xf, yf, zf);
       Thread.sleep(100);
     }
     System.out.println("nav: chunk loaded");
   }
 
-  public void takePortal(int x, int y, int z) throws InterruptedException {
+  private void setLocationWithPacket(double x, double y, double z) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+
+    // Relies on /gamerule disablePlayerMovementCheck true
+    this.client.send(new ServerboundMovePlayerPosPacket(true, false, this.x, this.y, this.z));
+  }
+
+  public void takePortal(int x, int y, int z) throws Exception {
+    double xf = x + 0.5;
+    double yf = y;
+    double zf = z + 0.5;
+
+    double startingX = this.x;
+    double startingY = this.y;
+    double startingZ = this.z;
+
     System.out.println("nav: taking portal from " + this.getOperatorDimension() + "...");
     String startingDim = this.dimension;
-    Thread.sleep(1500);
-    this.client.send(new ServerboundMovePlayerPosPacket(true, false, x + 0.5, y, z + 0.5));
+    this.setLocationWithPacket(xf, yf, zf);
 
-    while (startingDim.equals(this.dimension)) {
-      this.client.send(new ServerboundMovePlayerPosPacket(true, false, x + 0.5, y, z + 0.5));
-      Thread.sleep(100);
+    for (int i = 0; i < 3 && startingDim.equals(this.dimension); i++) {
+      System.out.println(
+          "nav: taking portal from " + this.getOperatorDimension() + "... (" + (i + 1) + "/3)");
+
+      this.setLocationWithPacket(startingX, startingY, startingZ);
+      Thread.sleep(700 + (i * 750));
+      this.setLocationWithPacket(xf, yf, zf);
+
+      long startTime = System.nanoTime();
+
+      while (startingDim.equals(this.dimension)) {
+        long elapsedMs = (System.nanoTime() - startTime) / 1000000;
+        if (elapsedMs > 3000) {
+          break;
+        }
+
+        this.setLocationWithPacket(xf, yf, zf);
+        Thread.sleep(100);
+      }
     }
 
-    System.out.println("dimension transferred");
+    if (startingDim.equals(this.dimension)) {
+      throw new Exception("nav: failed to take portal");
+    }
+
+    System.out.println("nav: dimension transferred");
 
     while (!this.isChunkLoadedAtPos((int) this.x, (int) this.z)) {
       Thread.sleep(100);
