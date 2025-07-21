@@ -354,6 +354,63 @@ public class Operator {
                 ? vec3FromJson(json.getJSONObject("take_portal"))
                 : null;
         return new ScanSignsOperationKind(location, takePortal);
+      case "MoveItems":
+        JSONArray sourceHoldsArray = json.getJSONArray("source_holds");
+        String[] sourceHolds = new String[sourceHoldsArray.length()];
+        for (int i = 0; i < sourceHoldsArray.length(); i++) {
+          sourceHolds[i] = sourceHoldsArray.getString(i);
+        }
+        JSONArray destinationHoldsArray = json.getJSONArray("destination_holds");
+        String[] destinationHolds = new String[destinationHoldsArray.length()];
+        for (int i = 0; i < destinationHoldsArray.length(); i++) {
+          destinationHolds[i] = destinationHoldsArray.getString(i);
+        }
+        JSONArray countsArray = json.getJSONArray("counts");
+        int[] counts = new int[countsArray.length()];
+        for (int i = 0; i < countsArray.length(); i++) {
+          counts[i] = countsArray.getInt(i);
+        }
+        return new MoveItemsOperationKind(sourceHolds, destinationHolds, counts);
+      case "DropItems":
+        Location dropFrom = locationFromJson(json.getJSONObject("drop_from"));
+        Vec3 aimTowards = vec3FromJson(json.getJSONObject("aim_towards"));
+        JSONArray dropSourceHoldsArray = json.getJSONArray("source_holds");
+        String[] dropSourceHolds = new String[dropSourceHoldsArray.length()];
+        for (int i = 0; i < dropSourceHoldsArray.length(); i++) {
+          dropSourceHolds[i] = dropSourceHoldsArray.getString(i);
+        }
+        return new DropItemsOperationKind(dropFrom, aimTowards, dropSourceHolds);
+      case "ImportInventory":
+        Vec3 chestLocation = vec3FromJson(json.getJSONObject("chest_location"));
+        Location nodeLocation = locationFromJson(json.getJSONObject("node_location"));
+        JSONArray importDestinationHoldsArray = json.getJSONArray("destination_holds");
+        String[] importDestinationHolds = new String[importDestinationHoldsArray.length()];
+        for (int i = 0; i < importDestinationHoldsArray.length(); i++) {
+          importDestinationHolds[i] = importDestinationHoldsArray.getString(i);
+        }
+        return new ImportInventoryOperationKind(chestLocation, nodeLocation, importDestinationHolds);
+      case "LoadShulker":
+        Location loadShulkerStationLocation = locationFromJson(json.getJSONObject("shulker_station_location"));
+        String loadShulkerHold = json.getString("shulker_hold");
+        JSONArray loadSourceHoldsArray = json.getJSONArray("source_holds");
+        String[] loadSourceHolds = new String[loadSourceHoldsArray.length()];
+        for (int i = 0; i < loadSourceHoldsArray.length(); i++) {
+          if (loadSourceHoldsArray.isNull(i)) {
+            loadSourceHolds[i] = null;
+          } else {
+            loadSourceHolds[i] = loadSourceHoldsArray.getString(i);
+          }
+        }
+        return new LoadShulkerOperationKind(loadShulkerStationLocation, loadShulkerHold, loadSourceHolds);
+      case "UnloadShulker":
+        Location unloadShulkerStationLocation = locationFromJson(json.getJSONObject("shulker_station_location"));
+        String unloadShulkerHold = json.getString("shulker_hold");
+        JSONArray unloadDestinationHoldsArray = json.getJSONArray("destination_holds");
+        String[] unloadDestinationHolds = new String[unloadDestinationHoldsArray.length()];
+        for (int i = 0; i < unloadDestinationHoldsArray.length(); i++) {
+          unloadDestinationHolds[i] = unloadDestinationHoldsArray.getString(i);
+        }
+        return new UnloadShulkerOperationKind(unloadShulkerStationLocation, unloadShulkerHold, unloadDestinationHolds);
       default:
         throw new IllegalArgumentException("Unknown operation type: " + type);
     }
@@ -559,6 +616,126 @@ public class Operator {
 
     public Vec3 getTakePortal() {
       return takePortal;
+    }
+  }
+
+  public static class MoveItemsOperationKind extends OperationKind {
+    private final String[] sourceHolds;
+    private final String[] destinationHolds;
+    private final int[] counts;
+
+    public MoveItemsOperationKind(String[] sourceHolds, String[] destinationHolds, int[] counts) {
+      this.sourceHolds = sourceHolds;
+      this.destinationHolds = destinationHolds;
+      this.counts = counts;
+    }
+
+    public String[] getSourceHolds() {
+      return sourceHolds;
+    }
+
+    public String[] getDestinationHolds() {
+      return destinationHolds;
+    }
+
+    public int[] getCounts() {
+      return counts;
+    }
+  }
+
+  public static class DropItemsOperationKind extends OperationKind {
+    private final Location dropFrom;
+    private final Vec3 aimTowards;
+    private final String[] sourceHolds;
+
+    public DropItemsOperationKind(Location dropFrom, Vec3 aimTowards, String[] sourceHolds) {
+      this.dropFrom = dropFrom;
+      this.aimTowards = aimTowards;
+      this.sourceHolds = sourceHolds;
+    }
+
+    public Location getDropFrom() {
+      return dropFrom;
+    }
+
+    public Vec3 getAimTowards() {
+      return aimTowards;
+    }
+
+    public String[] getSourceHolds() {
+      return sourceHolds;
+    }
+  }
+
+  public static class ImportInventoryOperationKind extends OperationKind {
+    private final Vec3 chestLocation;
+    private final Location nodeLocation;
+    private final String[] destinationHolds;
+
+    public ImportInventoryOperationKind(Vec3 chestLocation, Location nodeLocation, String[] destinationHolds) {
+      this.chestLocation = chestLocation;
+      this.nodeLocation = nodeLocation;
+      this.destinationHolds = destinationHolds;
+    }
+
+    public Vec3 getChestLocation() {
+      return chestLocation;
+    }
+
+    public Location getNodeLocation() {
+      return nodeLocation;
+    }
+
+    public String[] getDestinationHolds() {
+      return destinationHolds;
+    }
+  }
+
+  public static class LoadShulkerOperationKind extends OperationKind {
+    private final Location shulkerStationLocation;
+    private final String shulkerHold;
+    private final String[] sourceHolds;
+
+    public LoadShulkerOperationKind(Location shulkerStationLocation, String shulkerHold, String[] sourceHolds) {
+      this.shulkerStationLocation = shulkerStationLocation;
+      this.shulkerHold = shulkerHold;
+      this.sourceHolds = sourceHolds;
+    }
+
+    public Location getShulkerStationLocation() {
+      return shulkerStationLocation;
+    }
+
+    public String getShulkerHold() {
+      return shulkerHold;
+    }
+
+    public String[] getSourceHolds() {
+      return sourceHolds;
+    }
+  }
+
+  public static class UnloadShulkerOperationKind extends OperationKind {
+    private final Location shulkerStationLocation;
+    private final String shulkerHold;
+    private final String[] destinationHolds;
+
+    public UnloadShulkerOperationKind(Location shulkerStationLocation, String shulkerHold, String[] destinationHolds) {
+      this.shulkerStationLocation = shulkerStationLocation;
+      this.shulkerHold = shulkerHold;
+      this.destinationHolds = destinationHolds;
+    }
+
+    public Location getShulkerStationLocation() {
+      return shulkerStationLocation;
+    }
+
+    public String getShulkerHold() {
+      return shulkerHold;
+    }
+
+    public String[] getDestinationHolds() {
+      return destinationHolds;
     }
   }
 
