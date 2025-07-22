@@ -388,9 +388,11 @@ public class Operator {
         for (int i = 0; i < importDestinationHoldsArray.length(); i++) {
           importDestinationHolds[i] = importDestinationHoldsArray.getString(i);
         }
-        return new ImportInventoryOperationKind(chestLocation, nodeLocation, importDestinationHolds);
+        return new ImportInventoryOperationKind(
+            chestLocation, nodeLocation, importDestinationHolds);
       case "LoadShulker":
-        Location loadShulkerStationLocation = locationFromJson(json.getJSONObject("shulker_station_location"));
+        Location loadShulkerStationLocation =
+            locationFromJson(json.getJSONObject("shulker_station_location"));
         String loadShulkerHold = json.getString("shulker_hold");
         JSONArray loadSourceHoldsArray = json.getJSONArray("source_holds");
         String[] loadSourceHolds = new String[loadSourceHoldsArray.length()];
@@ -401,16 +403,19 @@ public class Operator {
             loadSourceHolds[i] = loadSourceHoldsArray.getString(i);
           }
         }
-        return new LoadShulkerOperationKind(loadShulkerStationLocation, loadShulkerHold, loadSourceHolds);
+        return new LoadShulkerOperationKind(
+            loadShulkerStationLocation, loadShulkerHold, loadSourceHolds);
       case "UnloadShulker":
-        Location unloadShulkerStationLocation = locationFromJson(json.getJSONObject("shulker_station_location"));
+        Location unloadShulkerStationLocation =
+            locationFromJson(json.getJSONObject("shulker_station_location"));
         String unloadShulkerHold = json.getString("shulker_hold");
         JSONArray unloadDestinationHoldsArray = json.getJSONArray("destination_holds");
         String[] unloadDestinationHolds = new String[unloadDestinationHoldsArray.length()];
         for (int i = 0; i < unloadDestinationHoldsArray.length(); i++) {
           unloadDestinationHolds[i] = unloadDestinationHoldsArray.getString(i);
         }
-        return new UnloadShulkerOperationKind(unloadShulkerStationLocation, unloadShulkerHold, unloadDestinationHolds);
+        return new UnloadShulkerOperationKind(
+            unloadShulkerStationLocation, unloadShulkerHold, unloadDestinationHolds);
       default:
         throw new IllegalArgumentException("Unknown operation type: " + type);
     }
@@ -672,7 +677,8 @@ public class Operator {
     private final Location nodeLocation;
     private final String[] destinationHolds;
 
-    public ImportInventoryOperationKind(Vec3 chestLocation, Location nodeLocation, String[] destinationHolds) {
+    public ImportInventoryOperationKind(
+        Vec3 chestLocation, Location nodeLocation, String[] destinationHolds) {
       this.chestLocation = chestLocation;
       this.nodeLocation = nodeLocation;
       this.destinationHolds = destinationHolds;
@@ -696,7 +702,8 @@ public class Operator {
     private final String shulkerHold;
     private final String[] sourceHolds;
 
-    public LoadShulkerOperationKind(Location shulkerStationLocation, String shulkerHold, String[] sourceHolds) {
+    public LoadShulkerOperationKind(
+        Location shulkerStationLocation, String shulkerHold, String[] sourceHolds) {
       this.shulkerStationLocation = shulkerStationLocation;
       this.shulkerHold = shulkerHold;
       this.sourceHolds = sourceHolds;
@@ -720,7 +727,8 @@ public class Operator {
     private final String shulkerHold;
     private final String[] destinationHolds;
 
-    public UnloadShulkerOperationKind(Location shulkerStationLocation, String shulkerHold, String[] destinationHolds) {
+    public UnloadShulkerOperationKind(
+        Location shulkerStationLocation, String shulkerHold, String[] destinationHolds) {
       this.shulkerStationLocation = shulkerStationLocation;
       this.shulkerHold = shulkerHold;
       this.destinationHolds = destinationHolds;

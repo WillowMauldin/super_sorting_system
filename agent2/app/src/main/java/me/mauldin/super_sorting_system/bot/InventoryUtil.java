@@ -47,4 +47,30 @@ public class InventoryUtil {
       return value.toString();
     }
   }
+
+  /*
+   public static HashedStack itemStackToHashedStack(ItemStack itemStack) {
+  HashMap<DataComponentType<Object>,Integer> addedComponents = new HashMap();
+   HashSet<DataComponentType<Object>> removedComponents = new HashSet();
+
+   DataComponents dataComponents = stack.getDataComponentsPatch();
+
+   if (dataComponents != null) {
+  	for (var entry : dataComponents.getDataComponents().entrySet()) {
+  		if (entry.getValue() == null) {
+  			removedComponents.add(entry.getKey());
+  		} else {
+  			addedComponents.put(entry.getKey(), entry.hashCode());
+  		}
+  	      }
+   }
+
+   return new HashedStack(
+  	itemStack.getId(),
+  	itemStack.getAmount(),
+  	addedComponents,
+  	removedComponents
+  		 );
+   }
+   */
 }

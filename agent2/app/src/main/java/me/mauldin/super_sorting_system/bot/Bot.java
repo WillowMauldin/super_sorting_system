@@ -95,7 +95,7 @@ public class Bot {
             System.out.println(
                 "Disconnected: " + event.getReason() + " (" + event.getCause() + ")");
             isConnected = false;
-	    shutdown();
+            shutdown();
           }
 
           @Override
