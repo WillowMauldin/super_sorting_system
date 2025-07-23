@@ -22,13 +22,13 @@ const formatShort = (num: number): string => {
 export const CountSelectorModal = ({ currentRequest, item, close }: Props) => {
   const [debug, setDebug] = useState(false);
   const [rawCount, setRawCount] = useState(() => {
-    if (currentRequest?.shulkerCount > 0) return currentRequest.shulkerCount;
-    if (currentRequest?.itemCount > 0) return currentRequest.itemCount;
+    if (currentRequest?.shulkerCount && currentRequest.shulkerCount > 0) return currentRequest.shulkerCount;
+    if (currentRequest?.itemCount && currentRequest.itemCount > 0) return currentRequest.itemCount;
     return 1;
   });
   const [denomination, setDenomination] = useState<Denomination>(() => {
-    if (currentRequest?.shulkerCount > 0) return 'shulker';
-    if (currentRequest?.itemCount > 0) return 'item';
+    if (currentRequest?.shulkerCount && currentRequest.shulkerCount > 0) return 'shulker';
+    if (currentRequest?.itemCount && currentRequest.itemCount > 0) return 'item';
     return 'stack';
   });
 

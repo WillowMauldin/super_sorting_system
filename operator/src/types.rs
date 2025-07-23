@@ -264,8 +264,7 @@ pub struct Item {
     #[serde(with = "string")]
     pub stackable_hash: u64,
 
-    #[serde(with = "string")]
-    pub full_shulker_stackable_hash: Option<u64>,
+    pub full_shulker_stackable_hash: Option<String>,
 
     #[serde(skip)]
     pub shulker_data: Option<Box<ShulkerData>>,

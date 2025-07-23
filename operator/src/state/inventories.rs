@@ -79,8 +79,7 @@ impl InventoryState {
                     };
 
                     if should_unpack {
-                        for mut contained_item in shulker_data.contained_items.clone() {
-                            contained_item.full_shulker_stackable_hash = full_shulker_hash;
+                        for contained_item in shulker_data.contained_items.clone() {
                             insert_item(&contained_item, &mut item_map);
                         }
                     } else {
@@ -95,7 +94,7 @@ impl InventoryState {
         // Update all items in the map with their corresponding full_shulker_stackable_hash
         for (item_hash, shulker_hash) in full_shulker_hashes {
             if let Some(item) = item_map.get_mut(&item_hash) {
-                item.full_shulker_stackable_hash = Some(shulker_hash);
+                item.full_shulker_stackable_hash = Some(shulker_hash.to_string());
             }
         }
 
