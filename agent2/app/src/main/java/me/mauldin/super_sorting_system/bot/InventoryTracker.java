@@ -14,6 +14,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ClickItemAction;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerActionType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.DropItemAction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerClosePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetContentPacket;
@@ -322,5 +323,39 @@ public class InventoryTracker extends SessionAdapter {
     } else {
       this.playerInventory[playerSlot] = destinationItem;
     }
+  }
+
+  public void dropItems(int playerSlot) throws Exception {
+    if (this.currentlyOpenScreen != 0) {
+      throw new Exception("unable to drop items, in inventory");
+    }
+
+    if (playerSlot < 0 || playerSlot >= 36) {
+      throw new Exception("unable to transfer items, invalid player slot: " + playerSlot);
+    }
+
+    if (this.playerInventory == null) {
+      throw new Exception("unable to drop items, player inventory not present");
+    }
+
+    if (this.playerInventory[playerSlot] == null) {
+      throw new Exception("unable to drop items, slot empty");
+    }
+
+    ItemStack itemToDrop = this.playerInventory[playerSlot];
+    int rawSlot = playerSlot + 9;
+
+    // Drop whole stack
+    HashMap<Integer, ItemStack> changedSlots = new HashMap();
+    changedSlots.put(rawSlot, null);
+    this.client.send(
+        new ServerboundContainerClickPacket(
+            this.currentlyOpenScreen,
+            this.stateId,
+            rawSlot,
+            ContainerActionType.DROP_ITEM,
+            DropItemAction.DROP_SELECTED_STACK,
+            null,
+            changedSlots));
   }
 }
