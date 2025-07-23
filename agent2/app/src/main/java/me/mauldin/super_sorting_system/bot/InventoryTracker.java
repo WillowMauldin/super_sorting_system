@@ -196,8 +196,16 @@ public class InventoryTracker extends SessionAdapter {
     return this.playerInventory;
   }
 
-  public void transferItems(int playerSlot, int invSlot, int count, boolean toChest) throws Exception {
-	  System.out.println("inv: transferitems call (playerSlot #" + playerSlot + ") (invSlot #" + invSlot + ") (toChest " + toChest + ")");
+  public void transferItems(int playerSlot, int invSlot, int count, boolean toChest)
+      throws Exception {
+    System.out.println(
+        "inv: transferitems call (playerSlot #"
+            + playerSlot
+            + ") (invSlot #"
+            + invSlot
+            + ") (toChest "
+            + toChest
+            + ")");
 
     if (this.containerInventory == null) {
       throw new Exception("unable to transfer items, container inventory not present");
