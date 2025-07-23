@@ -67,6 +67,9 @@ public class DropItems {
     Vec3 dropVec = dropFrom.getVec3();
     bot.navigation.navigateTo(dropVec.getX(), dropVec.getY(), dropVec.getZ(), dropFrom.getDim());
 
+    // Look towards the aim target
+    bot.navigation.lookTowards(aimTowards.getX(), aimTowards.getY(), aimTowards.getZ());
+
     // Drop items from player inventory slots
     for (int invSlot = 0; invSlot < sourceHolds.length; invSlot++) {
       bot.inventoryTracker.dropItems(invSlot);

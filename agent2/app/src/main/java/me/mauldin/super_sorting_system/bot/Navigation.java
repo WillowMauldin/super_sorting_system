@@ -28,6 +28,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.Clien
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerRotPacket;
 
 public class Navigation extends SessionAdapter {
   private String dimension = "";
@@ -246,6 +247,40 @@ public class Navigation extends SessionAdapter {
       Thread.sleep(100);
     }
     System.out.println("nav: portal taken");
+  }
+
+  public void lookTowards(int towardsX, int towardsY, int towardsZ) {
+    /*
+     * The yaw and pitch of player (in degrees), standing at point (x0, y0, z0) and looking towards point (x, y, z) can be calculated with:
+     *
+     * dx = x-x0
+     * dy = y-y0
+     * dz = z-z0
+     * r = sqrt( dx*dx + dy*dy + dz*dz )
+     * yaw = -atan2(dx,dz)/PI*180
+     * if yaw < 0 then
+     *    yaw = 360 + yaw
+     * pitch = -arcsin(dy/r)/PI*180
+     */
+
+    // Calculate deltas
+    double dx = (towardsX + 0.5) - this.x;
+    double dy = towardsY - this.y;
+    double dz = (towardsZ + 0.5) - this.z;
+
+    // Calculate distance
+    double r = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+    // Calculate yaw (horizontal rotation)
+    double yaw = -Math.atan2(dx, dz) / Math.PI * 180;
+    if (yaw < 0) {
+      yaw = 360 + yaw;
+    }
+
+    // Calculate pitch (vertical rotation)
+    double pitch = -Math.asin(dy / r) / Math.PI * 180;
+
+    this.client.send(new ServerboundMovePlayerRotPacket(true, false, (float) yaw, (float) pitch));
   }
 
   // x and z are game coordinates, not chunk coordinates
