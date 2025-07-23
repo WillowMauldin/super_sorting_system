@@ -7,11 +7,13 @@ import java.util.concurrent.TimeUnit;
 import me.mauldin.super_sorting_system.Config;
 import me.mauldin.super_sorting_system.Operator;
 import me.mauldin.super_sorting_system.Operator.Agent;
+import me.mauldin.super_sorting_system.Operator.MoveItemsOperationKind;
 import me.mauldin.super_sorting_system.Operator.Operation;
 import me.mauldin.super_sorting_system.Operator.OperationKind;
 import me.mauldin.super_sorting_system.Operator.PollOperationResponse;
 import me.mauldin.super_sorting_system.Operator.ScanInventoryOperationKind;
 import me.mauldin.super_sorting_system.Operator.ScanSignsOperationKind;
+import me.mauldin.super_sorting_system.bot.operations.MoveItems;
 import me.mauldin.super_sorting_system.bot.operations.ScanInventory;
 import me.mauldin.super_sorting_system.bot.operations.ScanSigns;
 import net.raphimc.minecraftauth.step.java.StepMCProfile.MCProfile;
@@ -197,6 +199,8 @@ public class Bot {
           ScanSigns.execute(this, scanSignsKind);
         } else if (kind instanceof ScanInventoryOperationKind scanInventoryKind) {
           ScanInventory.execute(this, scanInventoryKind);
+        } else if (kind instanceof MoveItemsOperationKind moveItemsKind) {
+          MoveItems.execute(this, moveItemsKind);
         } else {
           throw new Exception("unrecognized operation kind");
         }
