@@ -224,7 +224,9 @@ public class InventoryTracker extends SessionAdapter {
       throw new Exception("unable to transfer items to chest, player slot empty");
     }
 
-    if (toChest && this.playerInventory[playerSlot].getAmount() < count) {
+    if (toChest
+        && count != Integer.MAX_VALUE
+        && this.playerInventory[playerSlot].getAmount() < count) {
       throw new Exception("unable to transfer items to chest, player slot has less than count");
     }
 
@@ -232,7 +234,9 @@ public class InventoryTracker extends SessionAdapter {
       throw new Exception("unable to transfer items to player, chest slot empty");
     }
 
-    if (!toChest && this.containerInventory[invSlot].getAmount() < count) {
+    if (!toChest
+        && count != Integer.MAX_VALUE
+        && this.containerInventory[invSlot].getAmount() < count) {
       throw new Exception("unable to transfer items to chest, chest slot has less than count");
     }
 
@@ -269,8 +273,11 @@ public class InventoryTracker extends SessionAdapter {
 
     ItemStack heldItem = itemToMove;
 
+    // Calculate actual count to transfer (Integer.MAX_VALUE means entire stack)
+    int actualCount = (count == Integer.MAX_VALUE) ? itemToMove.getAmount() : count;
+
     // Drop until we are holding the desired count
-    int toDropCount = itemToMove.getAmount() - count;
+    int toDropCount = itemToMove.getAmount() - actualCount;
     for (int i = 1; i <= toDropCount; i++) {
       heldItem =
           new ItemStack(
