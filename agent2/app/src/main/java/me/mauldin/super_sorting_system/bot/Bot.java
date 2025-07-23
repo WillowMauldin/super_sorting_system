@@ -8,6 +8,7 @@ import me.mauldin.super_sorting_system.Config;
 import me.mauldin.super_sorting_system.Operator;
 import me.mauldin.super_sorting_system.Operator.Agent;
 import me.mauldin.super_sorting_system.Operator.DropItemsOperationKind;
+import me.mauldin.super_sorting_system.Operator.ImportInventoryOperationKind;
 import me.mauldin.super_sorting_system.Operator.MoveItemsOperationKind;
 import me.mauldin.super_sorting_system.Operator.Operation;
 import me.mauldin.super_sorting_system.Operator.OperationKind;
@@ -15,6 +16,7 @@ import me.mauldin.super_sorting_system.Operator.PollOperationResponse;
 import me.mauldin.super_sorting_system.Operator.ScanInventoryOperationKind;
 import me.mauldin.super_sorting_system.Operator.ScanSignsOperationKind;
 import me.mauldin.super_sorting_system.bot.operations.DropItems;
+import me.mauldin.super_sorting_system.bot.operations.ImportInventory;
 import me.mauldin.super_sorting_system.bot.operations.MoveItems;
 import me.mauldin.super_sorting_system.bot.operations.ScanInventory;
 import me.mauldin.super_sorting_system.bot.operations.ScanSigns;
@@ -205,6 +207,8 @@ public class Bot {
           MoveItems.execute(this, moveItemsKind);
         } else if (kind instanceof DropItemsOperationKind dropItemsKind) {
           DropItems.execute(this, dropItemsKind);
+        } else if (kind instanceof ImportInventoryOperationKind importInventoryKind) {
+          ImportInventory.execute(this, importInventoryKind);
         } else {
           throw new Exception("unrecognized operation kind");
         }
