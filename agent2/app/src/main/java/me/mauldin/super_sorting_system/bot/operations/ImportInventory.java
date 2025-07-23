@@ -7,6 +7,7 @@ import me.mauldin.super_sorting_system.Operator.ImportInventoryOperationKind;
 import me.mauldin.super_sorting_system.Operator.Location;
 import me.mauldin.super_sorting_system.Operator.Vec3;
 import me.mauldin.super_sorting_system.bot.Bot;
+import me.mauldin.super_sorting_system.bot.InventoryUtil;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 public class ImportInventory {
@@ -71,6 +72,7 @@ public class ImportInventory {
       // If we need to open a different chest, close current and open new one
       if (lastChestLocation == null || !locationEquals(holdLocation, lastChestLocation)) {
         if (isChestOpen) {
+          InventoryUtil.uploadInventoryData(bot, lastChestLocation, lastChestOpenFrom);
           bot.inventoryTracker.closeWindow();
           isChestOpen = false;
         }
@@ -96,6 +98,7 @@ public class ImportInventory {
 
     // Close the final chest if one is open
     if (isChestOpen) {
+      InventoryUtil.uploadInventoryData(bot, lastChestLocation, lastChestOpenFrom);
       bot.inventoryTracker.closeWindow();
     }
   }

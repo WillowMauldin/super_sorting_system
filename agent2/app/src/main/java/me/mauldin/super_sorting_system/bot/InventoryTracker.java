@@ -196,8 +196,9 @@ public class InventoryTracker extends SessionAdapter {
     return this.playerInventory;
   }
 
-  public void transferItems(int playerSlot, int invSlot, int count, boolean toChest)
-      throws Exception {
+  public void transferItems(int playerSlot, int invSlot, int count, boolean toChest) throws Exception {
+	  System.out.println("inv: transferitems call (playerSlot #" + playerSlot + ") (invSlot #" + invSlot + ") (toChest " + toChest + ")");
+
     if (this.containerInventory == null) {
       throw new Exception("unable to transfer items, container inventory not present");
     }
@@ -268,7 +269,7 @@ public class InventoryTracker extends SessionAdapter {
     if (toChest) {
       this.playerInventory[playerSlot] = null;
     } else {
-      this.containerInventory[playerSlot] = null;
+      this.containerInventory[invSlot] = null;
     }
 
     ItemStack heldItem = itemToMove;
@@ -323,7 +324,7 @@ public class InventoryTracker extends SessionAdapter {
         new ServerboundContainerClickPacket(
             this.currentlyOpenScreen,
             this.stateId,
-            fromSlotRaw,
+            toSlotRaw,
             ContainerActionType.CLICK_ITEM,
             ClickItemAction.LEFT_CLICK,
             null,
@@ -368,5 +369,7 @@ public class InventoryTracker extends SessionAdapter {
             DropItemAction.DROP_SELECTED_STACK,
             null,
             changedSlots));
+
+    this.playerInventory[playerSlot] = null;
   }
 }

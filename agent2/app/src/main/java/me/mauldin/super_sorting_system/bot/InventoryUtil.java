@@ -1,9 +1,11 @@
 package me.mauldin.super_sorting_system.bot;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import me.mauldin.super_sorting_system.Operator.FreeHoldResponse;
 import me.mauldin.super_sorting_system.Operator.Hold;
+import me.mauldin.super_sorting_system.Operator.Item;
 import me.mauldin.super_sorting_system.Operator.Location;
 import me.mauldin.super_sorting_system.Operator.Vec3;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
@@ -114,6 +116,23 @@ public class InventoryUtil {
     }
 
     return true;
+  }
+
+  public static void uploadInventoryData(Bot bot, Location loc, Vec3 openFromVec) throws Exception {
+    ItemStack[] items = bot.inventoryTracker.getContainerInventory();
+    List<Item> slots =
+        Arrays.stream(items)
+            .map(
+                stack -> {
+                  if (stack == null) return null;
+                  DataComponents components = stack.getDataComponentsPatch();
+                  Object serializedComponents =
+                      components != null ? InventoryUtil.serializeDataComponents(components) : null;
+                  return new Item(stack.getId(), stack.getAmount(), serializedComponents);
+                })
+            .collect(Collectors.toList());
+
+    bot.operator.inventoryScanned(slots, loc, openFromVec, bot.agent);
   }
 
   /*

@@ -7,6 +7,7 @@ import me.mauldin.super_sorting_system.Operator.Location;
 import me.mauldin.super_sorting_system.Operator.MoveItemsOperationKind;
 import me.mauldin.super_sorting_system.Operator.Vec3;
 import me.mauldin.super_sorting_system.bot.Bot;
+import me.mauldin.super_sorting_system.bot.InventoryUtil;
 
 public class MoveItems {
   public static void execute(Bot bot, MoveItemsOperationKind op) throws Exception {
@@ -41,6 +42,7 @@ public class MoveItems {
       // If we need to open a different chest, close current and open new one
       if (lastChestLocation == null || !locationEquals(holdLocation, lastChestLocation)) {
         if (isChestOpen) {
+          InventoryUtil.uploadInventoryData(bot, lastChestLocation, lastChestOpenFrom);
           bot.inventoryTracker.closeWindow();
           isChestOpen = false;
         }
@@ -73,6 +75,7 @@ public class MoveItems {
       // If we need to open a different chest, close current and open new one
       if (!locationEquals(holdLocation, lastChestLocation)) {
         if (isChestOpen) {
+          InventoryUtil.uploadInventoryData(bot, lastChestLocation, lastChestOpenFrom);
           bot.inventoryTracker.closeWindow();
           isChestOpen = false;
         }
@@ -98,6 +101,7 @@ public class MoveItems {
 
     // Close the final chest if one is open
     if (isChestOpen) {
+      InventoryUtil.uploadInventoryData(bot, lastChestLocation, lastChestOpenFrom);
       bot.inventoryTracker.closeWindow();
     }
   }
