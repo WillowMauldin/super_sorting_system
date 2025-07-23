@@ -150,8 +150,19 @@ public class Bot {
         Thread.sleep(500);
         continue;
       }
+
+      // Attempt to clear inventory before polling for operations
+      boolean inventoryCleared = false;
+      try {
+        inventoryCleared = InventoryUtil.clearInventory(this);
+      } catch (Exception e) {
+        System.err.println("Error clearing inventory: " + e.getMessage());
+        inventoryCleared = false;
+      }
+
       PollOperationResponse pollResult =
-          this.operator.pollOperation(this.agent, this.navigation.getCurrentLocation(), false);
+          this.operator.pollOperation(
+              this.agent, this.navigation.getCurrentLocation(), inventoryCleared);
 
       if (!(pollResult instanceof PollOperationResponse.OperationAvailable)) {
         if (!atHome) {

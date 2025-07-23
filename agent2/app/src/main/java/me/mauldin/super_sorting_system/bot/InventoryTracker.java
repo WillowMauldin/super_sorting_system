@@ -192,6 +192,10 @@ public class InventoryTracker extends SessionAdapter {
     return this.containerInventory;
   }
 
+  public ItemStack[] getPlayerInventory() {
+    return this.playerInventory;
+  }
+
   public void transferItems(int playerSlot, int invSlot, int count, boolean toChest)
       throws Exception {
     if (this.containerInventory == null) {
