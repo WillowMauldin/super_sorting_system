@@ -7,17 +7,38 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 public class WorldInteractions {
-    // This places a block at the position given, by placing it on the bottom side of the block above that
-    public static void placeBlockAt(Bot bot, int hotbarSlot, int x, int y, int z) throws Exception {
-        if (hotbarSlot < 0 || hotbarSlot > 8) {
-            throw new Exception("world: Invalid hotbar slot " + hotbarSlot);
-        }
-        bot.client.send(new ServerboundSetCarriedItemPacket(hotbarSlot));
-
-        bot.client.send(new ServerboundUseItemOnPacket(Vector3i.from(x, y + 1, z), Direction.DOWN, Hand.MAIN_HAND, 0.5f, 0.5f, 0.5f, false, false, 1));
+  // This places a block at the position given, by placing it on the bottom side of the block above
+  // that
+  public static void placeBlockAt(Bot bot, int hotbarSlot, int x, int y, int z) throws Exception {
+    if (hotbarSlot < 0 || hotbarSlot > 8) {
+      throw new Exception("world: Invalid hotbar slot " + hotbarSlot);
     }
+    bot.client.send(new ServerboundSetCarriedItemPacket(hotbarSlot));
 
-    public static void pushButtonAt(Bot bot, int x, int y, int z) {
-        bot.client.send(new ServerboundUseItemOnPacket(Vector3i.from(x, y, z), Direction.DOWN, Hand.MAIN_HAND, 0.5f, 0.5f, 0.5f, false, false, 1));
-    }
+    bot.client.send(
+        new ServerboundUseItemOnPacket(
+            Vector3i.from(x, y + 1, z),
+            Direction.DOWN,
+            Hand.MAIN_HAND,
+            0.5f,
+            0.5f,
+            0.5f,
+            false,
+            false,
+            1));
+  }
+
+  public static void pushButtonAt(Bot bot, int x, int y, int z) {
+    bot.client.send(
+        new ServerboundUseItemOnPacket(
+            Vector3i.from(x, y, z),
+            Direction.DOWN,
+            Hand.MAIN_HAND,
+            0.5f,
+            0.5f,
+            0.5f,
+            false,
+            false,
+            1));
+  }
 }

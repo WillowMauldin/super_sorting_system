@@ -9,17 +9,21 @@ import me.mauldin.super_sorting_system.Operator;
 import me.mauldin.super_sorting_system.Operator.Agent;
 import me.mauldin.super_sorting_system.Operator.DropItemsOperationKind;
 import me.mauldin.super_sorting_system.Operator.ImportInventoryOperationKind;
+import me.mauldin.super_sorting_system.Operator.LoadShulkerOperationKind;
 import me.mauldin.super_sorting_system.Operator.MoveItemsOperationKind;
 import me.mauldin.super_sorting_system.Operator.Operation;
 import me.mauldin.super_sorting_system.Operator.OperationKind;
 import me.mauldin.super_sorting_system.Operator.PollOperationResponse;
 import me.mauldin.super_sorting_system.Operator.ScanInventoryOperationKind;
 import me.mauldin.super_sorting_system.Operator.ScanSignsOperationKind;
+import me.mauldin.super_sorting_system.Operator.UnloadShulkerOperationKind;
 import me.mauldin.super_sorting_system.bot.operations.DropItems;
 import me.mauldin.super_sorting_system.bot.operations.ImportInventory;
+import me.mauldin.super_sorting_system.bot.operations.LoadShulker;
 import me.mauldin.super_sorting_system.bot.operations.MoveItems;
 import me.mauldin.super_sorting_system.bot.operations.ScanInventory;
 import me.mauldin.super_sorting_system.bot.operations.ScanSigns;
+import me.mauldin.super_sorting_system.bot.operations.UnloadShulker;
 import net.raphimc.minecraftauth.step.java.StepMCProfile.MCProfile;
 import net.raphimc.minecraftauth.step.java.StepMCToken.MCToken;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession.FullJavaSession;
@@ -220,6 +224,10 @@ public class Bot {
           DropItems.execute(this, dropItemsKind);
         } else if (kind instanceof ImportInventoryOperationKind importInventoryKind) {
           ImportInventory.execute(this, importInventoryKind);
+        } else if (kind instanceof LoadShulkerOperationKind loadShulkerKind) {
+          LoadShulker.execute(this, loadShulkerKind);
+        } else if (kind instanceof UnloadShulkerOperationKind unloadShulkerKind) {
+          UnloadShulker.execute(this, unloadShulkerKind);
         } else {
           throw new Exception("unrecognized operation kind");
         }
