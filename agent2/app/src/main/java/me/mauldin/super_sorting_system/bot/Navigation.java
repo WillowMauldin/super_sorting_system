@@ -17,6 +17,7 @@ import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.data.game.ClientCommand;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerSpawnInfo;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PositionElement;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
@@ -56,6 +57,17 @@ public class Navigation extends SessionAdapter {
     if (packet instanceof ClientboundRespawnPacket respawnPacket) {
       PlayerSpawnInfo spawnInfo = respawnPacket.getCommonPlayerSpawnInfo();
       if (spawnInfo.getLastDeathPos() != null) {
+        GlobalPos deathPos = spawnInfo.getLastDeathPos();
+        System.out.println(
+            "nav: death pos ("
+                + deathPos.getX()
+                + ", "
+                + deathPos.getY()
+                + ", "
+                + deathPos.getZ()
+                + ") ["
+                + deathPos.getDimension().value()
+                + "]");
         session.send(new ServerboundClientCommandPacket(ClientCommand.RESPAWN));
       }
       this.dimension = spawnInfo.getWorldName().toString();
@@ -65,6 +77,17 @@ public class Navigation extends SessionAdapter {
     } else if (packet instanceof ClientboundLoginPacket loginPacket) {
       PlayerSpawnInfo spawnInfo = loginPacket.getCommonPlayerSpawnInfo();
       if (spawnInfo.getLastDeathPos() != null) {
+        GlobalPos deathPos = spawnInfo.getLastDeathPos();
+        System.out.println(
+            "nav: death pos ("
+                + deathPos.getX()
+                + ", "
+                + deathPos.getY()
+                + ", "
+                + deathPos.getZ()
+                + ") ["
+                + deathPos.getDimension().value()
+                + "]");
         session.send(new ServerboundClientCommandPacket(ClientCommand.RESPAWN));
       }
       this.dimension = spawnInfo.getWorldName().toString();
