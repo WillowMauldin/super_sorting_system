@@ -1,6 +1,8 @@
 package me.mauldin.super_sorting_system.bot;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import me.mauldin.super_sorting_system.Operator.FreeHoldResponse;
@@ -8,7 +10,9 @@ import me.mauldin.super_sorting_system.Operator.Hold;
 import me.mauldin.super_sorting_system.Operator.Item;
 import me.mauldin.super_sorting_system.Operator.Location;
 import me.mauldin.super_sorting_system.Operator.Vec3;
+import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -137,29 +141,23 @@ public class InventoryUtil {
     bot.operator.inventoryScanned(slots, loc, openFromVec, bot.agent);
   }
 
-  /*
-   public static HashedStack itemStackToHashedStack(ItemStack itemStack) {
-  HashMap<DataComponentType<Object>,Integer> addedComponents = new HashMap();
-   HashSet<DataComponentType<Object>> removedComponents = new HashSet();
+  public static HashedStack itemStackToHashedStack(ItemStack itemStack) {
+    HashMap<DataComponentType<?>, Integer> addedComponents = new HashMap<>();
+    HashSet<DataComponentType<?>> removedComponents = new HashSet<>();
 
-   DataComponents dataComponents = stack.getDataComponentsPatch();
+    DataComponents dataComponents = itemStack.getDataComponentsPatch();
 
-   if (dataComponents != null) {
-  	for (var entry : dataComponents.getDataComponents().entrySet()) {
-  		if (entry.getValue() == null) {
-  			removedComponents.add(entry.getKey());
-  		} else {
-  			addedComponents.put(entry.getKey(), entry.hashCode());
-  		}
-  	      }
-   }
+    if (dataComponents != null) {
+      for (var entry : dataComponents.getDataComponents().entrySet()) {
+        if (entry.getValue() == null) {
+          removedComponents.add(entry.getKey());
+        } else {
+          addedComponents.put(entry.getKey(), entry.hashCode());
+        }
+      }
+    }
 
-   return new HashedStack(
-  	itemStack.getId(),
-  	itemStack.getAmount(),
-  	addedComponents,
-  	removedComponents
-  		 );
-   }
-   */
+    return new HashedStack(
+        itemStack.getId(), itemStack.getAmount(), addedComponents, removedComponents);
+  }
 }
