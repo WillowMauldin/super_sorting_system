@@ -55,6 +55,9 @@ public class UnloadShulker {
 
     // Transfer items from shulker to player inventory
     for (int shulkerSlot = 0; shulkerSlot < Math.min(27, destinationHolds.length); shulkerSlot++) {
+      if (bot.inventoryTracker.getContainerInventory()[shulkerSlot] == null) {
+        continue;
+      }
       // Transfer from shulker slot to player inventory slot
       bot.inventoryTracker.transferItems(shulkerSlot, shulkerSlot, Integer.MAX_VALUE, false);
     }
