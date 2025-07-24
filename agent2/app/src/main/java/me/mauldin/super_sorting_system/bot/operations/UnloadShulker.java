@@ -73,7 +73,7 @@ public class UnloadShulker {
     for (int attempts = 0; attempts < 100; attempts++) {
       Thread.sleep(50);
       // The shulker should appear in the player's hotbar slot 0 (inventory slot 36)
-      if (bot.inventoryTracker.getPlayerInventory()[27]) {
+      if (bot.inventoryTracker.getPlayerInventory()[27] != null) {
         break;
       }
 
