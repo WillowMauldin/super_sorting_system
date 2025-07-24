@@ -53,6 +53,14 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "me.mauldin.super_sorting_system.McAgent"
+    }
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 spotless {
 	java {
 		importOrder()
