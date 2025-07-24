@@ -65,10 +65,8 @@ async fn main() -> Result<(), StartupError> {
             Box::new(DefraggerService::new(&config)),
             Box::new(HoldExpirationService::new(&config)),
             Box::new(NodeScannerService::new(&config)),
-            /*
             Box::new(ShulkerUnloaderService::new(&config)),
             Box::new(ShulkerLoaderService::new(&config)),
-            */
             Box::new(OperationExpirationService::new(&config)),
             Box::new(AlertExpirationService::new(&config)),
         ];
