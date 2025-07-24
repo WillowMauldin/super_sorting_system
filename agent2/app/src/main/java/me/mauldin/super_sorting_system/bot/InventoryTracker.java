@@ -15,6 +15,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.ClickItemAction;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerActionType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.DropItemAction;
+import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerClosePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetContentPacket;
@@ -262,7 +263,7 @@ public class InventoryTracker extends SessionAdapter {
     int fromSlotRaw = toChest ? rawPlayerSlot : invSlot;
 
     // Pickup whole stack
-    HashMap<Integer, ItemStack> changedSlotsFrom = new HashMap();
+    HashMap<Integer, HashedStack> changedSlotsFrom = new HashMap();
     changedSlotsFrom.put(fromSlotRaw, null);
     this.client.send(
         new ServerboundContainerClickPacket(
@@ -271,7 +272,7 @@ public class InventoryTracker extends SessionAdapter {
             fromSlotRaw,
             ContainerActionType.CLICK_ITEM,
             ClickItemAction.LEFT_CLICK,
-            itemToMove,
+            InventoryUtil.itemStackToHashedStack(itemToMove),
             changedSlotsFrom));
 
     if (toChest) {
@@ -292,7 +293,7 @@ public class InventoryTracker extends SessionAdapter {
           new ItemStack(
               heldItem.getId(), heldItem.getAmount() - 1, heldItem.getDataComponentsPatch());
       ItemStack slotItem = new ItemStack(heldItem.getId(), i, heldItem.getDataComponentsPatch());
-      changedSlotsFrom.put(fromSlotRaw, slotItem);
+      changedSlotsFrom.put(fromSlotRaw, InventoryUtil.itemStackToHashedStack(slotItem));
 
       this.client.send(
           new ServerboundContainerClickPacket(
@@ -301,7 +302,7 @@ public class InventoryTracker extends SessionAdapter {
               fromSlotRaw,
               ContainerActionType.CLICK_ITEM,
               ClickItemAction.RIGHT_CLICK,
-              heldItem,
+              InventoryUtil.itemStackToHashedStack(heldItem),
               changedSlotsFrom));
 
       if (toChest) {
@@ -326,8 +327,8 @@ public class InventoryTracker extends SessionAdapter {
                 + (oldDestinationItem == null ? 0 : oldDestinationItem.getAmount()),
             heldItem.getDataComponentsPatch());
 
-    HashMap<Integer, ItemStack> changedSlotsTo = new HashMap();
-    changedSlotsTo.put(toSlotRaw, destinationItem);
+    HashMap<Integer, HashedStack> changedSlotsTo = new HashMap();
+    changedSlotsTo.put(toSlotRaw, InventoryUtil.itemStackToHashedStack(destinationItem));
     this.client.send(
         new ServerboundContainerClickPacket(
             this.currentlyOpenScreen,
@@ -366,7 +367,7 @@ public class InventoryTracker extends SessionAdapter {
     int rawSlot = playerSlot + 9;
 
     // Drop whole stack
-    HashMap<Integer, ItemStack> changedSlots = new HashMap();
+    HashMap<Integer, HashedStack> changedSlots = new HashMap();
     changedSlots.put(rawSlot, null);
     this.client.send(
         new ServerboundContainerClickPacket(
