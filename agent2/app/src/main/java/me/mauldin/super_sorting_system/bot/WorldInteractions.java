@@ -13,6 +13,11 @@ public class WorldInteractions {
     if (hotbarSlot < 0 || hotbarSlot > 8) {
       throw new Exception("world: Invalid hotbar slot " + hotbarSlot);
     }
+
+    if (bot.inventoryTracker.getPlayerInventory()[hotbarSlot + 27] == null) {
+      throw new Exception("world: no item in hotbar slot " + hotbarSlot);
+    }
+
     bot.client.send(new ServerboundSetCarriedItemPacket(hotbarSlot));
 
     bot.client.send(
@@ -26,6 +31,8 @@ public class WorldInteractions {
             false,
             false,
             1));
+
+    bot.inventoryTracker.getPlayerInventory()[hotbarSlot + 27] = null;
   }
 
   public static void pushButtonAt(Bot bot, int x, int y, int z) {

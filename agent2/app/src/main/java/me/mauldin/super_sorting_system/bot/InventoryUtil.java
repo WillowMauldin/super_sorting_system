@@ -97,6 +97,8 @@ public class InventoryUtil {
         // Transfer the entire stack from player inventory to chest
         bot.inventoryTracker.transferItems(invSlot, hold.getSlot(), Integer.MAX_VALUE, true);
 
+        InventoryUtil.uploadInventoryData(bot, location, openFrom);
+
         // Close the chest
         bot.inventoryTracker.closeWindow();
 
