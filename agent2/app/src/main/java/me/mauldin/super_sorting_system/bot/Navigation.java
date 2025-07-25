@@ -235,9 +235,7 @@ public class Navigation extends SessionAdapter {
     double startingY = this.y;
     double startingZ = this.z;
 
-    System.out.println("nav: taking portal from " + this.getOperatorDimension() + "...");
     String startingDim = this.dimension;
-    this.setLocationWithPacket(xf, yf, zf);
 
     for (int i = 0; i < 3 && startingDim.equals(this.dimension); i++) {
       System.out.println(
@@ -246,6 +244,7 @@ public class Navigation extends SessionAdapter {
       this.setLocationWithPacket(startingX, startingY, startingZ);
       Thread.sleep(700 + (i * 750));
       this.setLocationWithPacket(xf, yf, zf);
+      Thread.sleep(700 + (i * 750));
 
       long startTime = System.nanoTime();
 
@@ -256,7 +255,7 @@ public class Navigation extends SessionAdapter {
         }
 
         this.setLocationWithPacket(xf, yf, zf);
-        Thread.sleep(100);
+        Thread.sleep(500);
       }
     }
 
