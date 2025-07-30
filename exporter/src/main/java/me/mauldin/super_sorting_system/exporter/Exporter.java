@@ -1,6 +1,7 @@
 package me.mauldin.super_sorting_system.exporter;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.Item;
@@ -38,7 +39,9 @@ public class Exporter implements ModInitializer {
 			exportedItems.add(new ExportedItem(rawId, displayName, key));
 		}
 
-		Gson gson = new Gson();
+		exportedItems.sort((a, b) -> Integer.compare(a.rawId(), b.rawId()));
+
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String export = gson.toJson(exportedItems);
 
 		Path writeToPath = FabricLoader.getInstance().getGameDir().resolve("item_export.json");
