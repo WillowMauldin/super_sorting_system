@@ -172,26 +172,20 @@ public class Bot {
         if (!atHome) {
           try {
             var signConfig = this.operator.getSignConfig();
-            var complexes = signConfig.getData().optJSONObject("complexes");
+            var nodes = signConfig.getData().optJSONObject("nodes");
 
-            if (complexes != null && complexes.length() > 0) {
-              String complexKey = complexes.keys().next();
-              var complex = complexes.getJSONObject(complexKey);
-
-              if (complex.has("Tower")) {
-                var tower = complex.getJSONObject("Tower");
-                String dimension = tower.getString("dimension");
-                var origin = tower.getJSONObject("origin");
-                this.navigation.navigateTo(
-                    origin.getInt("x"), origin.getInt("y"), origin.getInt("z"), dimension);
-              } else if (complex.has("FlatFloor")) {
-                var flatFloor = complex.getJSONObject("FlatFloor");
-                String dimension = flatFloor.getString("dimension");
-                var bounds = flatFloor.getJSONArray("bounds");
-                var firstBound = bounds.getJSONObject(0);
-                int yLevel = flatFloor.getInt("y_level");
-                this.navigation.navigateTo(
-                    firstBound.getInt("x"), yLevel + 1, firstBound.getInt("z"), dimension);
+            if (nodes != null) {
+              // Find first home node
+              for (var nodeKey : nodes.keySet()) {
+                var node = nodes.getJSONObject(nodeKey);
+                if (node.optBoolean("home", false)) {
+                  var location = node.getJSONObject("location");
+                  var vec3 = location.getJSONObject("vec3");
+                  String dimension = location.getString("dim");
+                  this.navigation.navigateTo(
+                      vec3.getInt("x"), vec3.getInt("y"), vec3.getInt("z"), dimension);
+                  break;
+                }
               }
             }
 

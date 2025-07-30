@@ -60,7 +60,7 @@ export const Config = () => {
 
             return (
               <ListItem key={node.name} onClick={toggleExpand}>
-                <p>{node.name}</p>
+                <p>{node.name}{node.home ? ' (H)' : ''}</p>
                 {thisNodeExpanded && (
                   <ExpandContainer>
                     {status === 'loading' ? (

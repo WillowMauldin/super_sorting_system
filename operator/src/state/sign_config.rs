@@ -125,7 +125,22 @@ pub struct Sign {
 
 // Line 2: Sign type: "storage tower"
 // Line 3: Height
-// Name of tower
+// Line 4: Name of tower
+
+/*
+ * Home Signs
+ * These signs mark a pathfinding node as a home station where the bot should return when idle
+ */
+
+// Line 2: Sign type "home"
+// Line 3: Pathfinding Node Name
+// Line 4: Unused
+
+// Example:
+// SSS
+// home
+// Main Hub
+// (4th line empty)
 
 #[derive(Debug)]
 pub enum ParsedSign {
@@ -159,6 +174,9 @@ pub enum ParsedSign {
         dimension: Dimension,
         origin: Vec3,
         height: u32,
+        name: String,
+    },
+    Home {
         name: String,
     },
 }
@@ -289,6 +307,15 @@ impl TryFrom<&Sign> for ParsedSign {
                 height: s.lines[2].parse().map_err(|_| SignParseError::BadHeight)?,
                 name: s.lines[3].clone(),
             }),
+            "home" => {
+                let name = s.lines[2].clone();
+
+                if name.len() == 0 {
+                    return Err(SignParseError::NameEmpty);
+                }
+
+                Ok(ParsedSign::Home { name })
+            }
             _ => Err(SignParseError::UnknownSignType),
         }
     }
@@ -308,6 +335,7 @@ pub struct PathfindingNode {
     pub dropoff: Option<Vec3>,
     pub portal: Option<Portal>,
     pub shulker_station: bool,
+    pub home: bool,
 }
 
 #[derive(Serialize)]
@@ -396,6 +424,7 @@ impl SignConfigState {
                             dropoff: None,
                             portal: None,
                             shulker_station: false,
+                            home: false,
                         },
                     );
 
@@ -429,6 +458,7 @@ impl SignConfigState {
                             dropoff: None,
                             portal: None,
                             shulker_station: false,
+                            home: false,
                         },
                     );
 
@@ -458,6 +488,7 @@ impl SignConfigState {
                             dropoff: None,
                             portal: None,
                             shulker_station: false,
+                            home: false,
                         },
                     );
 
@@ -517,6 +548,18 @@ impl SignConfigState {
                 }
 
                 node.unwrap().shulker_station = true
+            }
+            ParsedSign::Home { name } => {
+                let node = nodes.get_mut(name);
+
+                if node.is_none() {
+                    validation_errors.push(SignConfigValidationError::UnknownNode {
+                        name: name.clone(),
+                    });
+                    return;
+                }
+
+                node.unwrap().home = true
             }
             ParsedSign::Portal {
                 effective_location,

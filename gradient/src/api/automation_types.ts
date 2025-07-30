@@ -13,6 +13,7 @@ export type PathfindingNode = {
   name: string;
   pickup?: Vec3;
   dropoff?: Vec3;
+  home: boolean;
 };
 
 export type StorageComplex = {
