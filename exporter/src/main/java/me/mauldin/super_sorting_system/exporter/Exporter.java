@@ -35,8 +35,9 @@ public class Exporter implements ModInitializer {
 			int rawId = Item.getRawId(item);
 			String displayName = item.getName().getString();
 			String key = registryKey.getValue().toString();
+			int maxCount = item.getMaxCount();
 
-			exportedItems.add(new ExportedItem(rawId, displayName, key));
+			exportedItems.add(new ExportedItem(rawId, displayName, key, maxCount));
 		}
 
 		exportedItems.sort((a, b) -> Integer.compare(a.rawId(), b.rawId()));
@@ -56,4 +57,4 @@ public class Exporter implements ModInitializer {
 	}
 }
 
-record ExportedItem(int rawId, String displayName, String key) {}
+record ExportedItem(int rawId, String displayName, String key, int maxCount) {}
