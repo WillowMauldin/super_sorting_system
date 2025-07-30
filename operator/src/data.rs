@@ -9,11 +9,13 @@ pub struct McData {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct McDataItem {
+    #[serde(rename = "rawId")]
     pub id: u32,
     #[serde(rename = "displayName")]
     pub display_name: String,
+    #[serde(rename = "key")]
     pub name: String,
-    #[serde(rename = "stackSize")]
+    #[serde(rename = "maxCount")]
     pub stack_size: u32,
 }
 

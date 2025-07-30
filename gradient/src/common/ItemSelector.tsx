@@ -8,8 +8,14 @@ import { ExtendedItem, itemListFromInventories } from '../helpers';
 import { Fzf } from 'fzf';
 import { Item } from '../api/types';
 
-export type SelectedItemsFinal = { item: ExtendedItem; shulkerCount: number; itemCount: number }[];
-export type SelectedItems = { [hashCode: string]: { shulkerCount: number; itemCount: number } | undefined };
+export type SelectedItemsFinal = {
+  item: ExtendedItem;
+  shulkerCount: number;
+  itemCount: number;
+}[];
+export type SelectedItems = {
+  [hashCode: string]: { shulkerCount: number; itemCount: number } | undefined;
+};
 type Props = {
   submit: (final: SelectedItemsFinal) => void;
   selectedItems: SelectedItems;
@@ -37,7 +43,10 @@ export const ItemSelector = ({
   const [modalItem, setModalItem] = useState<ExtendedItem | null>();
   const mainInputRef = useRef<HTMLInputElement>(null);
 
-  const setSelectedForItem = (item: Item, request: { shulkerCount: number; itemCount: number }) => {
+  const setSelectedForItem = (
+    item: Item,
+    request: { shulkerCount: number; itemCount: number },
+  ) => {
     setSelectedItems((currSelected) => ({
       ...currSelected,
       [item.stackable_hash]: request,
@@ -66,8 +75,12 @@ export const ItemSelector = ({
       : itemList.sort((a, b) => {
           const aRequest = selectedItems[a.stackable_hash];
           const bRequest = selectedItems[b.stackable_hash];
-          const aSelected = Boolean(aRequest && (aRequest.shulkerCount > 0 || aRequest.itemCount > 0));
-          const bSelected = Boolean(bRequest && (bRequest.shulkerCount > 0 || bRequest.itemCount > 0));
+          const aSelected = Boolean(
+            aRequest && (aRequest.shulkerCount > 0 || aRequest.itemCount > 0),
+          );
+          const bSelected = Boolean(
+            bRequest && (bRequest.shulkerCount > 0 || bRequest.itemCount > 0),
+          );
 
           if (aSelected && !bSelected) {
             return -1;
@@ -82,17 +95,18 @@ export const ItemSelector = ({
     const selected = [];
 
     for (const [hashCode, request] of Object.entries(selectedItems)) {
-      if (!request || (request.shulkerCount === 0 && request.itemCount === 0)) continue;
+      if (!request || (request.shulkerCount === 0 && request.itemCount === 0))
+        continue;
       const matchedItem = itemList.find(
         (item) => item.stackable_hash === hashCode,
       );
 
       if (!matchedItem) continue;
 
-      selected.push({ 
-        item: matchedItem, 
+      selected.push({
+        item: matchedItem,
         shulkerCount: request.shulkerCount,
-        itemCount: request.itemCount 
+        itemCount: request.itemCount,
       });
     }
 
@@ -158,7 +172,10 @@ export const ItemSelector = ({
         <ItemList>
           {items.map((item, idx) => {
             const selectedRequest = selectedItems[item.stackable_hash];
-            const hasSelection = selectedRequest && (selectedRequest.shulkerCount > 0 || selectedRequest.itemCount > 0);
+            const hasSelection =
+              selectedRequest &&
+              (selectedRequest.shulkerCount > 0 ||
+                selectedRequest.itemCount > 0);
 
             return (
               <ItemOption
@@ -174,9 +191,11 @@ export const ItemSelector = ({
                 {item.prettyPrinted} x{item.count.toLocaleString()}
                 {hasSelection && (
                   <SelectedText hovered={hoverIdx === idx}>
-                    ({selectedRequest?.shulkerCount > 0 
-                      ? `${selectedRequest.shulkerCount} shulkers` 
-                      : `${selectedRequest?.itemCount} items`} selected)
+                    (
+                    {selectedRequest?.shulkerCount > 0
+                      ? `${selectedRequest.shulkerCount} shulkers`
+                      : `${selectedRequest?.itemCount} items`}{' '}
+                    selected)
                   </SelectedText>
                 )}
               </ItemOption>

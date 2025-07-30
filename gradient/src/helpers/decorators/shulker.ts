@@ -1,7 +1,7 @@
 import { Decorator } from './types';
 
 export const shulkerDecorator: Decorator = (item, mcData) => {
-  if (!mcData.items.get(item.item_id)?.name?.endsWith('shulker_box'))
+  if (!mcData.items.get(item.item_id)?.key?.endsWith('shulker_box'))
     return null;
 
   const nbtItemsList: [] | null =

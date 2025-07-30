@@ -2,7 +2,7 @@ import { Decorator } from './types';
 
 export const beeNestDecorator: Decorator = (item, mcData) => {
   const itemType = mcData.items.get(item.item_id);
-  if (!itemType || !['bee_nest', 'beehive'].includes(itemType.name))
+  if (!itemType || !['bee_nest', 'beehive'].includes(itemType.key))
     return null;
 
   const nbtBeesList: [] | null =

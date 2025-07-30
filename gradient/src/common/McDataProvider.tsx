@@ -1,12 +1,11 @@
 import React, { useContext, createContext, useMemo } from 'react';
 import { useQuery } from 'react-query';
-import { getEnchantments, getItems } from '../api/data';
-import { EnchantmentTypeByName, ItemTypeById } from '../api/data_types';
+import { getItems } from '../api/data';
+import { ItemTypeById } from '../api/data_types';
 import { SplashScreen } from '../screens/SplashScreen';
 
 export type McData = {
   items: ItemTypeById;
-  enchantments: EnchantmentTypeByName;
 };
 
 export const McDataContext = createContext<McData>(null as any);
@@ -23,49 +22,25 @@ export const McDataProvider: React.FC<{
     cacheTime: Infinity,
   });
 
-  const {
-    isLoading: mcEnchantmentsLoading,
-    isError: mcEnchantmentsError,
-    data: mcEnchantmentsArr,
-  } = useQuery('mc_data_enchants', getEnchantments, {
-    staleTime: Infinity,
-    cacheTime: Infinity,
-  });
-
   const items = useMemo(() => {
     if (!mcItemsArr) return undefined;
 
     const map: ItemTypeById = new Map();
 
     for (let item of mcItemsArr.data) {
-      map.set(item.id, item);
+      map.set(item.rawId, item);
     }
 
     return map;
   }, [mcItemsArr]);
 
-  const enchantments = useMemo(() => {
-    if (!mcEnchantmentsArr) return undefined;
+  if (mcItemsLoading) return <SplashScreen message="Loading Minecraft Data" />;
 
-    const map: EnchantmentTypeByName = new Map();
-
-    for (let enchant of mcEnchantmentsArr.data) {
-      map.set(enchant.name, enchant);
-    }
-
-    return map;
-  }, [mcEnchantmentsArr]);
-
-  if (mcItemsLoading || mcEnchantmentsLoading)
-    return <SplashScreen message="Loading Minecraft Data" />;
-
-  if (mcItemsError || mcEnchantmentsError)
+  if (mcItemsError)
     return <SplashScreen message="Failed to load Minecraft Data!" />;
 
   return (
-    <McDataContext.Provider
-      value={{ items: items!, enchantments: enchantments! }}
-    >
+    <McDataContext.Provider value={{ items: items! }}>
       {children}
     </McDataContext.Provider>
   );
