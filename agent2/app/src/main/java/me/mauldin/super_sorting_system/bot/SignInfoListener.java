@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import me.mauldin.super_sorting_system.Operator;
 import me.mauldin.super_sorting_system.Operator.Agent;
 import me.mauldin.super_sorting_system.Operator.Location;
@@ -61,12 +60,8 @@ public class SignInfoListener extends SessionAdapter {
         }
 
         NbtMap data = entity.getNbt();
-        List<String> front =
-            SignInfoListener.mapMessages(
-                (NbtList<String>) ((NbtMap) data.get("front_text")).get("messages"));
-        List<String> back =
-            SignInfoListener.mapMessages(
-                (NbtList<String>) ((NbtMap) data.get("back_text")).get("messages"));
+        List<String> front = (NbtList<String>) ((NbtMap) data.get("front_text")).get("messages");
+        List<String> back = (NbtList<String>) ((NbtMap) data.get("back_text")).get("messages");
 
         Vec3 vec3 = new Vec3(entity.getX() + x, entity.getY(), entity.getZ() + z);
         Location loc = new Location(vec3, this.navigation.getOperatorDimension());
@@ -86,15 +81,6 @@ public class SignInfoListener extends SessionAdapter {
       // The server won't send more chunks until we've acknowledged it
       session.send(new ServerboundChunkBatchReceivedPacket(5));
     }
-  }
-
-  private static List<String> mapMessages(NbtList<String> list) {
-    return list.stream()
-        .map(
-            message -> {
-              return (String) new org.json.JSONTokener(message).nextValue();
-            })
-        .collect(Collectors.toList());
   }
 
   private void uploadSignData() {
