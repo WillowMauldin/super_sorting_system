@@ -1,0 +1,22 @@
+{
+	"schemaVersion": 1,
+	"id": "exporter",
+	"version": "${version}",
+	"name": "exporter",
+	"description": "Data export utilities for Super Sorting System",
+	"authors": [
+		"Willow Mauldin"
+	],
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"me.mauldin.super_sorting_system.exporter.Exporter"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.7",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
