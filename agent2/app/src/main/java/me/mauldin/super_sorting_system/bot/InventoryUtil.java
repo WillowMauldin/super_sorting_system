@@ -10,6 +10,7 @@ import me.mauldin.super_sorting_system.Operator.Hold;
 import me.mauldin.super_sorting_system.Operator.Item;
 import me.mauldin.super_sorting_system.Operator.Location;
 import me.mauldin.super_sorting_system.Operator.Vec3;
+import net.kyori.adventure.text.TextComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -32,6 +33,8 @@ public class InventoryUtil {
     } else if (value instanceof DataComponents map) {
       JSONObject obj = new JSONObject();
 
+      obj.put("_raw", value.toString());
+
       for (var entry : map.getDataComponents().entrySet()) {
         obj.put(
             entry.getKey().getKey().toString(),
@@ -49,6 +52,12 @@ public class InventoryUtil {
       if (dataComponents != null) {
         obj.put("data_components", InventoryUtil.serializeValue(dataComponents));
       }
+
+      return obj;
+    } else if (value instanceof TextComponent tc) {
+      JSONObject obj = new JSONObject();
+
+      obj.put("text_content", tc.content());
 
       return obj;
     } else if (value == null) {
