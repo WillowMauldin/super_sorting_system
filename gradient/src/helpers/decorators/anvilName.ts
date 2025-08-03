@@ -1,13 +1,9 @@
 import { Decorator } from './types';
 
 export const anvilNameDecorator: Decorator = (item) => {
-  const nbtDisplayNameJson = item.nbt?.value?.display?.value?.Name?.value;
+  const text = item.data_components?.['minecraft:custom_name']?.text_content;
 
-  try {
-    const text = JSON.parse(nbtDisplayNameJson);
-
-    if (text && text.length > 0) return `"${text}"`;
-  } catch (_) {}
+  if (text && text.length > 0) return `"${text}"`;
 
   return null;
 };

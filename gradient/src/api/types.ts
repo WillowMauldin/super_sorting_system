@@ -39,7 +39,7 @@ export type Item = {
   item_id: number;
   count: number;
   metadata: number;
-  nbt: any;
+  data_components: any;
   stack_size: number;
   stackable_hash: string;
   full_shulker_stackable_hash?: string;
